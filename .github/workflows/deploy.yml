@@ -1,0 +1,43 @@
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  deploy-backend:
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: "npm"
+      - run: npm ci
+      - run: npm run build --workspace=apps/backend
+      # Railway / Render deploy hook
+      - name: Deploy Backend
+        if: env.DEPLOY_WEBHOOK_URL != ''
+        env:
+          DEPLOY_WEBHOOK_URL: ${{ secrets.BACKEND_DEPLOY_WEBHOOK }}
+        run: curl -X POST "$DEPLOY_WEBHOOK_URL"
+
+  deploy-frontend:
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: "npm"
+      - run: npm ci
+      # Vercel deploys automatically via Git integration
+      # This step is a fallback for manual triggers
+      - name: Deploy Frontend
+        if: env.VERCEL_TOKEN != ''
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: npx vercel --prod --token=$VERCEL_TOKEN

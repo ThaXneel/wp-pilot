@@ -1,0 +1,12 @@
+{
+  "name": "shared",
+  "version": "1.0.0",
+  "description": "WP Pilot — Shared types and utilities",
+  "main": "types/index.ts",
+  "type": "module",
+  "scripts": {},
+  "dependencies": {},
+  "devDependencies": {
+    "typescript": "^5.8.3"
+  }
+}

@@ -1,0 +1,82 @@
+version: "3.8"
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    restart: always
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    restart: always
+    volumes:
+      - redisdata:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: .
+      dockerfile: apps/backend/Dockerfile
+    restart: always
+    ports:
+      - "5000:5000"
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      REDIS_URL: redis://redis:6379
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET}
+      RESEND_API_KEY: ${RESEND_API_KEY}
+      FRONTEND_URL: ${FRONTEND_URL}
+      PROXY_URL: http://proxy:4000
+      NODE_ENV: production
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  proxy:
+    build:
+      context: .
+      dockerfile: services/proxy-layer/Dockerfile
+    restart: always
+    ports:
+      - "4000:4000"
+    environment:
+      REDIS_URL: redis://redis:6379
+      BACKEND_URL: http://backend:5000
+      JWT_SECRET: ${JWT_SECRET}
+      NODE_ENV: production
+    depends_on:
+      redis:
+        condition: service_healthy
+
+  frontend:
+    build:
+      context: .
+      dockerfile: apps/frontend/Dockerfile
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      NEXT_PUBLIC_API_URL: ${BACKEND_URL:-http://localhost:5000}/api
+    depends_on:
+      - backend
+
+volumes:
+  pgdata:
+  redisdata:

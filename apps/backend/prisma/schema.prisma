@@ -1,0 +1,152 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  OWNER
+  CLIENT
+}
+
+enum Language {
+  en
+  fr
+}
+
+enum Theme {
+  system
+  dark
+  light
+}
+
+enum Plan {
+  STARTER
+  GROWTH
+  ELITE
+}
+
+enum ClientStatus {
+  ACTIVE
+  SUSPENDED
+  PENDING
+}
+
+enum SiteStatus {
+  ONLINE
+  OFFLINE
+  PENDING
+}
+
+enum EventType {
+  ERROR
+  WARNING
+  INFO
+}
+
+model User {
+  id                 String   @id @default(cuid())
+  email              String   @unique
+  passwordHash       String
+  role               Role     @default(CLIENT)
+  languagePreference Language @default(en)
+  themePreference    Theme    @default(system)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  client             Client?
+  passwordResetTokens PasswordResetToken[]
+
+  @@map("users")
+}
+
+model Client {
+  id        String       @id @default(cuid())
+  userId    String       @unique
+  plan      Plan         @default(STARTER)
+  status    ClientStatus @default(PENDING)
+  createdAt DateTime     @default(now())
+
+  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  sites         ClientSite[]
+  connectTokens ConnectToken[]
+  activities    Activity[]
+
+  @@map("clients")
+}
+
+model ClientSite {
+  id          String     @id @default(cuid())
+  clientId    String
+  wpUrl       String
+  apiToken    String
+  status      SiteStatus @default(PENDING)
+  lastPing    DateTime?
+  healthScore Int        @default(100)
+  errorCount  Int        @default(0)
+  wpVersion   String?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  client       Client        @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  activities   Activity[]
+  globalEvents GlobalEvent[]
+
+  @@map("client_sites")
+}
+
+model ConnectToken {
+  id        String   @id @default(cuid())
+  clientId  String
+  token     String   @unique
+  used      Boolean  @default(false)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  client Client @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  @@map("connect_tokens")
+}
+
+model Activity {
+  id        String   @id @default(cuid())
+  clientId  String
+  siteId    String?
+  action    String
+  details   Json?
+  createdAt DateTime @default(now())
+
+  client Client      @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  site   ClientSite? @relation(fields: [siteId], references: [id], onDelete: SetNull)
+
+  @@map("activities")
+}
+
+model GlobalEvent {
+  id        String    @id @default(cuid())
+  siteId    String?
+  type      EventType
+  message   String
+  metadata  Json?
+  createdAt DateTime  @default(now())
+
+  site ClientSite? @relation(fields: [siteId], references: [id], onDelete: SetNull)
+
+  @@map("global_events")
+}
+
+model PasswordResetToken {
+  id        String   @id @default(cuid())
+  userId    String
+  token     String   @unique
+  expiresAt DateTime
+  used      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("password_reset_tokens")
+}
