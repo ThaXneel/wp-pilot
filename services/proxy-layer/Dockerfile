@@ -2,12 +2,12 @@ FROM node:20-alpine AS base
 WORKDIR /app
 
 FROM base AS deps
-COPY services/proxy-layer/package.json ./
+COPY package.json package-lock.json* ./
 RUN npm install --production=false
 
 FROM base AS builder
 COPY --from=deps /app/node_modules ./node_modules
-COPY services/proxy-layer/ ./
+COPY . ./
 RUN npm run build
 
 FROM base AS runner
