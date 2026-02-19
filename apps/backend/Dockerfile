@@ -3,13 +3,13 @@ WORKDIR /app
 
 # Install deps
 FROM base AS deps
-COPY apps/backend/package.json ./
+COPY package.json package-lock.json* ./
 RUN npm install --production=false
 
 # Build
 FROM base AS builder
 COPY --from=deps /app/node_modules ./node_modules
-COPY apps/backend/ ./
+COPY . ./
 RUN npx prisma generate
 RUN npm run build
 
@@ -26,4 +26,4 @@ COPY --from=builder /app/package.json ./
 
 USER appuser
 EXPOSE 5000
-CMD ["node", "dist/index.js"]
+CMD ["sh", "-c", "npx prisma migrate deploy && node dist/index.js"]
