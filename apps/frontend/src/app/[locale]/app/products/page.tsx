@@ -12,6 +12,7 @@ import { Badge } from "@/components/ui/Badge";
 import { Spinner } from "@/components/ui/Spinner";
 import { Link } from "@/i18n/routing";
 import { Plus, Search } from "lucide-react";
+import { useSiteStore } from "@/stores/siteStore";
 
 interface Product {
   id: string;
@@ -31,12 +32,14 @@ export default function ProductsPage() {
   const t = useTranslations("products");
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
+  const { selectedSiteId } = useSiteStore();
 
   const { data, isLoading } = useQuery({
-    queryKey: ["products", page, search],
+    queryKey: ["products", page, search, selectedSiteId],
     queryFn: async () => {
       const params = new URLSearchParams({ page: String(page), limit: "20" });
       if (search) params.set("search", search);
+      if (selectedSiteId) params.set("siteId", selectedSiteId);
       const res = await api<ProductsResponse>(`/products?${params}`);
       if (!res.success) throw new Error(res.error);
       return res.data;

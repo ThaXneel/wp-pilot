@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useLocale, useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
+import { useSiteStore } from "@/stores/siteStore";
 import {
   LayoutDashboard,
   ShoppingBag,
@@ -20,6 +21,7 @@ function ClientSidebar() {
   const locale = useLocale();
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const { sidebarCollapsed } = useSiteStore();
 
   const links = [
     { href: `/${locale}/app/dashboard`, label: t("dashboard"), icon: LayoutDashboard },
@@ -29,11 +31,18 @@ function ClientSidebar() {
     { href: `/${locale}/app/settings`, label: t("settings"), icon: Settings },
   ];
 
-  const nav = (
+  const nav = (collapsed = false) => (
     <nav className="flex flex-col gap-1 p-4">
-      <div className="mb-6 px-2">
-        <h1 className="text-xl font-bold text-primary">WP Pilot</h1>
-      </div>
+      {!collapsed && (
+        <div className="mb-6 px-2">
+          <h1 className="text-xl font-bold text-primary">WP Pilot</h1>
+        </div>
+      )}
+      {collapsed && (
+        <div className="mb-6 flex justify-center">
+          <span className="text-xl font-bold text-primary">WP</span>
+        </div>
+      )}
       {links.map((link) => {
         const isActive = pathname.startsWith(link.href);
         const Icon = link.icon;
@@ -42,15 +51,17 @@ function ClientSidebar() {
             key={link.href}
             href={link.href}
             onClick={() => setMobileOpen(false)}
+            title={collapsed ? link.label : undefined}
             className={cn(
-              "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
+              "flex items-center rounded-md text-sm font-medium transition-colors",
+              collapsed ? "justify-center px-2 py-2" : "gap-3 px-3 py-2",
               isActive
                 ? "bg-primary/10 text-primary"
                 : "text-muted-foreground hover:bg-accent hover:text-foreground"
             )}
           >
-            <Icon className="h-5 w-5" />
-            {link.label}
+            <Icon className="h-5 w-5 shrink-0" />
+            {!collapsed && link.label}
           </Link>
         );
       })}
@@ -79,12 +90,17 @@ function ClientSidebar() {
           mobileOpen ? "translate-x-0" : "-translate-x-full"
         )}
       >
-        {nav}
+        {nav(false)}
       </aside>
 
       {/* Sidebar — desktop */}
-      <aside className="hidden md:flex md:w-64 md:flex-col md:border-r md:bg-card">
-        {nav}
+      <aside
+        className={cn(
+          "hidden md:flex md:flex-col md:border-r md:bg-card transition-all duration-200",
+          sidebarCollapsed ? "md:w-16" : "md:w-64"
+        )}
+      >
+        {nav(sidebarCollapsed)}
       </aside>
     </>
   );

@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/Badge";
 import { Spinner } from "@/components/ui/Spinner";
 import { Link } from "@/i18n/routing";
 import { Plus } from "lucide-react";
+import { useSiteStore } from "@/stores/siteStore";
 
 interface Post {
   id: string;
@@ -29,11 +30,14 @@ interface PostsResponse {
 export default function PostsPage() {
   const t = useTranslations("posts");
   const [page, setPage] = useState(1);
+  const { selectedSiteId } = useSiteStore();
 
   const { data, isLoading } = useQuery({
-    queryKey: ["posts", page],
+    queryKey: ["posts", page, selectedSiteId],
     queryFn: async () => {
-      const res = await api<PostsResponse>(`/posts?page=${page}&limit=20`);
+      const params = new URLSearchParams({ page: String(page), limit: "20" });
+      if (selectedSiteId) params.set("siteId", selectedSiteId);
+      const res = await api<PostsResponse>(`/posts?${params}`);
       if (!res.success) throw new Error(res.error);
       return res.data;
     },

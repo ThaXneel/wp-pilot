@@ -2,6 +2,15 @@ import { prisma } from '../../config/database.js';
 import { AppError } from '../../middleware/errorHandler.js';
 
 export const sitesService = {
+  async getSiteConfig(siteId: string) {
+    const site = await prisma.clientSite.findUnique({
+      where: { id: siteId },
+      select: { wpUrl: true, apiToken: true },
+    });
+    if (!site) throw new AppError('Site not found', 404);
+    return site;
+  },
+
   async listSites(clientId?: string) {
     const where = clientId ? { clientId } : {};
     return prisma.clientSite.findMany({

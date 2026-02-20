@@ -1,3 +1,4 @@
+import jwt from 'jsonwebtoken';
 import { env } from '../../config/env.js';
 import { prisma } from '../../config/database.js';
 import { logger } from '../../config/logger.js';
@@ -37,18 +38,25 @@ export const dashboardService = {
       let orderCount = 0;
       let postCount = 0;
 
-      try {
-        const [productsRes, ordersRes, postsRes] = await Promise.all([
-          fetch(`${env.PROXY_URL}/proxy/products/count?clientId=${clientId}`),
-          fetch(`${env.PROXY_URL}/proxy/orders/count?clientId=${clientId}`),
-          fetch(`${env.PROXY_URL}/proxy/posts/count?clientId=${clientId}`),
-        ]);
+      // Use the first active site for counts
+      const activeSite = rawSites.find((s) => s.status === 'ONLINE') ?? rawSites[0];
+      if (activeSite) {
+        try {
+          const token = jwt.sign({ service: 'backend' }, env.JWT_SECRET, { expiresIn: '60s' });
+          const headers = { Authorization: `Bearer ${token}` };
 
-        if (productsRes.ok) productCount = ((await productsRes.json()) as { count?: number }).count ?? 0;
-        if (ordersRes.ok) orderCount = ((await ordersRes.json()) as { count?: number }).count ?? 0;
-        if (postsRes.ok) postCount = ((await postsRes.json()) as { count?: number }).count ?? 0;
-      } catch {
-        logger.warn('Could not fetch counts from proxy — using defaults');
+          const [productsRes, ordersRes, postsRes] = await Promise.all([
+            fetch(`${env.PROXY_URL}/proxy/sites/${activeSite.id}/products/count`, { headers }),
+            fetch(`${env.PROXY_URL}/proxy/sites/${activeSite.id}/orders/count`, { headers }),
+            fetch(`${env.PROXY_URL}/proxy/sites/${activeSite.id}/posts/count`, { headers }),
+          ]);
+
+          if (productsRes.ok) productCount = ((await productsRes.json()) as { count?: number }).count ?? 0;
+          if (ordersRes.ok) orderCount = ((await ordersRes.json()) as { count?: number }).count ?? 0;
+          if (postsRes.ok) postCount = ((await postsRes.json()) as { count?: number }).count ?? 0;
+        } catch {
+          logger.warn('Could not fetch counts from proxy — using defaults');
+        }
       }
 
       return {

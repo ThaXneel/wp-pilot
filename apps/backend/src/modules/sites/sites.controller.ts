@@ -2,6 +2,20 @@ import { Request, Response, NextFunction } from 'express';
 import { sitesService } from './sites.service.js';
 
 export const sitesController = {
+  async getConfig(req: Request, res: Response, next: NextFunction) {
+    try {
+      const internalHeader = req.headers['x-internal-service'];
+      if (internalHeader !== 'proxy-layer') {
+        res.status(401).json({ error: 'Unauthorized internal request' });
+        return;
+      }
+      const config = await sitesService.getSiteConfig(req.params.id as string);
+      res.json(config);
+    } catch (err) {
+      next(err);
+    }
+  },
+
   async list(req: Request, res: Response, next: NextFunction) {
     try {
       const clientId = req.user?.role === 'CLIENT' ? req.user.clientId : undefined;

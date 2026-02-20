@@ -1,13 +1,16 @@
 "use client";
 
+import { useEffect } from "react";
 import { useTranslations } from "next-intl";
 import { useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api";
+import { useSiteStore } from "@/stores/siteStore";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
+import { Button } from "@/components/ui/Button";
 import { Spinner } from "@/components/ui/Spinner";
 import { Link } from "@/i18n/routing";
-import { ShoppingBag, FileText, ClipboardList, Globe } from "lucide-react";
+import { ShoppingBag, FileText, ClipboardList, Globe, Plus } from "lucide-react";
 
 interface DashboardStats {
   productCount: number;
@@ -24,6 +27,7 @@ interface DashboardStats {
 
 export default function DashboardPage() {
   const t = useTranslations("dashboard");
+  const { setSites } = useSiteStore();
 
   const { data, isLoading } = useQuery({
     queryKey: ["dashboard-stats"],
@@ -33,6 +37,13 @@ export default function DashboardPage() {
       return res.data;
     },
   });
+
+  // Sync sites into the site store so the switcher stays up-to-date
+  useEffect(() => {
+    if (data?.sites) {
+      setSites(data.sites);
+    }
+  }, [data?.sites, setSites]);
 
   if (isLoading) {
     return (
@@ -92,10 +103,17 @@ export default function DashboardPage() {
       {/* Connected Sites */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Globe className="h-5 w-5" />
-            {t("connectedSites")}
-          </CardTitle>
+          <div className="flex items-center justify-between">
+            <CardTitle className="flex items-center gap-2">
+              <Globe className="h-5 w-5" />
+              {t("connectedSites")}
+            </CardTitle>
+            <Link href="/app/onboarding">
+              <Button size="sm">
+                <Plus className="mr-2 h-4 w-4" /> {t("addSite")}
+              </Button>
+            </Link>
+          </div>
         </CardHeader>
         <CardContent>
           {data?.sites && data.sites.length > 0 ? (

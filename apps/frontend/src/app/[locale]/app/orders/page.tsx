@@ -9,6 +9,7 @@ import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
 import { Spinner } from "@/components/ui/Spinner";
+import { useSiteStore } from "@/stores/siteStore";
 
 interface Order {
   id: string;
@@ -39,11 +40,14 @@ const statusVariant = (status: string) => {
 export default function OrdersPage() {
   const t = useTranslations("orders");
   const [page, setPage] = useState(1);
+  const { selectedSiteId } = useSiteStore();
 
   const { data, isLoading } = useQuery({
-    queryKey: ["orders", page],
+    queryKey: ["orders", page, selectedSiteId],
     queryFn: async () => {
-      const res = await api<OrdersResponse>(`/orders?page=${page}&limit=20`);
+      const params = new URLSearchParams({ page: String(page), limit: "20" });
+      if (selectedSiteId) params.set("siteId", selectedSiteId);
+      const res = await api<OrdersResponse>(`/orders?${params}`);
       if (!res.success) throw new Error(res.error);
       return res.data;
     },

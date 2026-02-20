@@ -13,7 +13,9 @@
     "confirm": "Confirmer",
     "actions": "Actions",
     "status": "Statut",
-    "viewAll": "Voir tout"
+    "viewAll": "Voir tout",
+    "notifications": "Notifications",
+    "noNotifications": "Aucune nouvelle notification"
   },
   "nav": {
     "dashboard": "Tableau de bord",
@@ -77,7 +79,8 @@
     "viewOrders": "Voir les commandes",
     "connectedSites": "Sites connectés",
     "noSites": "Aucun site connecté.",
-    "connectFirst": "Connectez votre premier site WordPress"
+    "connectFirst": "Connectez votre premier site WordPress",
+    "addSite": "Ajouter un site"
   },
   "onboarding": {
     "title": "Connectez votre site WordPress",
@@ -134,7 +137,38 @@
     "next": "Suivant",
     "requiredFields": "Le nom et le prix sont requis.",
     "createSuccess": "Produit créé avec succès",
-    "updateSuccess": "Produit mis à jour avec succès"
+    "updateSuccess": "Produit mis à jour avec succès",
+    "general": "Général",
+    "shortDescription": "Description courte",
+    "shortDescriptionPlaceholder": "Résumé du produit",
+    "salePrice": "Prix promotionnel",
+    "images": "Images",
+    "productImage": "URL de l'image du produit",
+    "galleryImages": "URLs des images de la galerie",
+    "galleryPlaceholder": "Entrez les URLs séparées par des virgules",
+    "organization": "Organisation",
+    "sku": "UGS",
+    "categories": "Catégories",
+    "categoriesPlaceholder": "Catégorie1, Catégorie2",
+    "tags": "Étiquettes",
+    "tagsPlaceholder": "Étiquette1, Étiquette2",
+    "inventory": "Inventaire",
+    "stockStatus": "État du stock",
+    "inStock": "En stock",
+    "outOfStock": "Rupture de stock",
+    "onBackorder": "En réapprovisionnement",
+    "manageStock": "Suivre la quantité en stock",
+    "stockQuantity": "Quantité en stock",
+    "shipping": "Expédition",
+    "weight": "Poids (kg)",
+    "length": "Longueur (cm)",
+    "width": "Largeur (cm)",
+    "height": "Hauteur (cm)",
+    "seo": "Référencement",
+    "metaTitle": "Titre méta",
+    "metaTitlePlaceholder": "Titre SEO pour les moteurs de recherche",
+    "metaDescription": "Description méta",
+    "metaDescriptionPlaceholder": "Description SEO pour les moteurs de recherche"
   },
   "orders": {
     "title": "Commandes",
