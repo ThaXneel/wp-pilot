@@ -20,6 +20,9 @@ import { adminRoutes } from './modules/admin/admin.routes.js';
 
 const app = express();
 
+// Trust proxy (Railway runs behind a reverse proxy)
+app.set('trust proxy', 1);
+
 // Global middleware
 app.use(helmet());
 app.use(cors({
