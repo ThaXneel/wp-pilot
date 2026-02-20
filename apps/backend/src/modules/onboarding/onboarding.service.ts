@@ -56,9 +56,20 @@ export const onboardingService = {
 
     const apiToken = crypto.randomBytes(48).toString('hex');
 
+    // Derive a display name: use provided siteName, or extract hostname from wpUrl
+    let siteName = input.siteName;
+    if (!siteName) {
+      try {
+        siteName = new URL(input.wpUrl).hostname;
+      } catch {
+        siteName = input.wpUrl;
+      }
+    }
+
     const site = await prisma.clientSite.create({
       data: {
         clientId: connectToken.clientId,
+        name: siteName,
         wpUrl: input.wpUrl,
         apiToken,
         status: 'ONLINE',

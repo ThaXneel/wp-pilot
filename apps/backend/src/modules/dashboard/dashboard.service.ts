@@ -6,7 +6,7 @@ export const dashboardService = {
   async getStats(clientId: string) {
     try {
       // Get sites with full details for the dashboard
-      const sites = await prisma.clientSite.findMany({
+      const rawSites = await prisma.clientSite.findMany({
         where: { clientId },
         select: {
           id: true,
@@ -17,6 +17,12 @@ export const dashboardService = {
         },
         orderBy: { createdAt: 'desc' },
       });
+
+      // Ensure every site has a display name (fallback to hostname from wpUrl)
+      const sites = rawSites.map((s) => ({
+        ...s,
+        name: s.name || new URL(s.wpUrl).hostname,
+      }));
 
       // Get recent activity count
       const recentActivity = await prisma.activity.count({

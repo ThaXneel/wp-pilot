@@ -72,6 +72,7 @@ class WP_Pilot_Connector {
                 'token'     => $token,
                 'wpUrl'     => get_site_url(),
                 'wpVersion' => $wp_version,
+                'siteName'  => get_bloginfo('name'),
             ]),
             'headers' => [
                 'Content-Type' => 'application/json',

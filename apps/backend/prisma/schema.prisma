@@ -81,6 +81,7 @@ model Client {
 model ClientSite {
   id          String     @id @default(cuid())
   clientId    String
+  name        String?
   wpUrl       String
   apiToken    String
   status      SiteStatus @default(PENDING)
