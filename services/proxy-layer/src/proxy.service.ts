@@ -61,6 +61,17 @@ export class ProxyService {
         body: body ? JSON.stringify(body) : undefined,
       });
 
+      // Guard against non-JSON responses (e.g. HTML error pages from WP)
+      const contentType = response.headers.get('content-type') || '';
+      if (!contentType.includes('application/json')) {
+        const text = await response.text();
+        console.error(`[Proxy] Non-JSON response from site ${siteId}: status=${response.status}, body=${text.slice(0, 200)}`);
+        return {
+          status: 502,
+          data: { error: 'WordPress site returned a non-JSON response. Ensure the WP Pilot Connector plugin is active and permalinks are configured.' },
+        };
+      }
+
       const responseData = await response.json();
       const normalized = normalize(responseData);
 
