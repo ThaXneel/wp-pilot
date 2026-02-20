@@ -7,7 +7,7 @@ import { onboardingService } from './onboarding.service.js';
 export const onboardingController = {
   async downloadPlugin(_req: Request, res: Response, next: NextFunction) {
     try {
-      const pluginDir = path.resolve(process.cwd(), '../../wordpress-plugin/wp-pilot-connector');
+      const pluginDir = path.resolve(process.cwd(), 'wordpress-plugin/wp-pilot-connector');
 
       if (!fs.existsSync(pluginDir)) {
         res.status(404).json({ success: false, error: 'Plugin files not found' });
