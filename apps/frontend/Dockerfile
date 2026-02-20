@@ -11,6 +11,11 @@ FROM base AS builder
 COPY --from=deps /app/node_modules ./node_modules
 COPY . ./
 ENV NEXT_TELEMETRY_DISABLED=1
+
+# Next.js needs NEXT_PUBLIC_* vars at build time
+ARG NEXT_PUBLIC_API_URL
+ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
+
 RUN npm run build
 
 # Production
