@@ -380,4 +380,4 @@ export default function NewProductPage() {
       </form>
     </div>
   );
-}}
+}
