@@ -5,14 +5,18 @@ import { logger } from '../../config/logger.js';
 export const dashboardService = {
   async getStats(clientId: string) {
     try {
-      // Get site count and status
+      // Get sites with full details for the dashboard
       const sites = await prisma.clientSite.findMany({
         where: { clientId },
-        select: { status: true },
+        select: {
+          id: true,
+          name: true,
+          wpUrl: true,
+          status: true,
+          healthScore: true,
+        },
+        orderBy: { createdAt: 'desc' },
       });
-
-      const sitesOnline = sites.filter((s: { status: string }) => s.status === 'ONLINE').length;
-      const sitesOffline = sites.filter((s: { status: string }) => s.status === 'OFFLINE').length;
 
       // Get recent activity count
       const recentActivity = await prisma.activity.count({
@@ -42,10 +46,10 @@ export const dashboardService = {
       }
 
       return {
-        sites: { total: sites.length, online: sitesOnline, offline: sitesOffline },
-        products: productCount,
-        orders: orderCount,
-        posts: postCount,
+        sites,
+        productCount,
+        orderCount,
+        postCount,
         recentActivity,
       };
     } catch (err) {
