@@ -9,16 +9,17 @@ class WP_Pilot_Orders {
         }
 
         $args = [
-            'limit' => $request->get_param('limit') ?? 50,
-            'page' => $request->get_param('page') ?? 1,
+            'limit' => absint($request->get_param('limit') ?? 50),
+            'page' => absint($request->get_param('page') ?? 1),
             'orderby' => 'date',
             'order' => 'DESC',
+            'paginate' => true,
         ];
 
-        $orders = wc_get_orders($args);
+        $results = wc_get_orders($args);
         $data = [];
 
-        foreach ($orders as $order) {
+        foreach ($results->orders as $order) {
             $data[] = [
                 'id' => $order->get_id(),
                 'number' => $order->get_order_number(),
@@ -32,7 +33,7 @@ class WP_Pilot_Orders {
             ];
         }
 
-        return rest_ensure_response(['orders' => $data, 'total' => count($data)]);
+        return rest_ensure_response(['orders' => $data, 'total' => $results->total]);
     }
 
     public function count_orders() {

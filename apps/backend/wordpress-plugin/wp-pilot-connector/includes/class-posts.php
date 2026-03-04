@@ -34,9 +34,9 @@ class WP_Pilot_Posts {
 
     public function create_post($request) {
         $post_id = wp_insert_post([
-            'post_title' => $request->get_param('title'),
-            'post_content' => $request->get_param('content') ?? '',
-            'post_status' => $request->get_param('status') ?? 'draft',
+            'post_title' => sanitize_text_field($request->get_param('title')),
+            'post_content' => wp_kses_post($request->get_param('content') ?? ''),
+            'post_status' => sanitize_text_field($request->get_param('status') ?? 'draft'),
             'post_type' => 'post',
         ], true);
 
@@ -63,9 +63,9 @@ class WP_Pilot_Posts {
         }
 
         $update_data = ['ID' => $post_id];
-        if ($request->get_param('title')) $update_data['post_title'] = $request->get_param('title');
-        if ($request->get_param('content')) $update_data['post_content'] = $request->get_param('content');
-        if ($request->get_param('status')) $update_data['post_status'] = $request->get_param('status');
+        if ($request->get_param('title')) $update_data['post_title'] = sanitize_text_field($request->get_param('title'));
+        if ($request->get_param('content')) $update_data['post_content'] = wp_kses_post($request->get_param('content'));
+        if ($request->get_param('status')) $update_data['post_status'] = sanitize_text_field($request->get_param('status'));
 
         $result = wp_update_post($update_data, true);
         if (is_wp_error($result)) {
@@ -80,6 +80,39 @@ class WP_Pilot_Posts {
             'content' => $updated->post_content,
             'status' => $updated->post_status,
         ]);
+    }
+
+    public function get_post($request) {
+        $post_id = absint($request->get_param('id'));
+        $post = get_post($post_id);
+
+        if (!$post || $post->post_type !== 'post') {
+            return new WP_Error('post_not_found', 'Post not found.', ['status' => 404]);
+        }
+
+        return rest_ensure_response([
+            'id' => $post->ID,
+            'title' => $post->post_title,
+            'content' => $post->post_content,
+            'excerpt' => $post->post_excerpt,
+            'status' => $post->post_status,
+            'author' => get_the_author_meta('display_name', $post->post_author),
+            'created_at' => get_the_date('c', $post),
+            'updated_at' => get_the_modified_date('c', $post),
+        ]);
+    }
+
+    public function delete_post($request) {
+        $post_id = absint($request->get_param('id'));
+        $post = get_post($post_id);
+
+        if (!$post || $post->post_type !== 'post') {
+            return new WP_Error('post_not_found', 'Post not found.', ['status' => 404]);
+        }
+
+        wp_delete_post($post_id, true);
+
+        return rest_ensure_response(['deleted' => true, 'id' => $post_id]);
     }
 
     public function count_posts() {

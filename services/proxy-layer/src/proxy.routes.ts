@@ -44,6 +44,16 @@ router.put('/sites/:siteId/products/:productId', async (req: Request, res: Respo
   res.status(result.status).json(result.data);
 });
 
+router.get('/sites/:siteId/products/:productId', async (req: Request, res: Response) => {
+  const result = await proxyService.forward(req.params.siteId as string, 'GET', `/products/${req.params.productId}`);
+  res.status(result.status).json(result.data);
+});
+
+router.delete('/sites/:siteId/products/:productId', async (req: Request, res: Response) => {
+  const result = await proxyService.forward(req.params.siteId as string, 'DELETE', `/products/${req.params.productId}`);
+  res.status(result.status).json(result.data);
+});
+
 router.get('/sites/:siteId/products/count', async (req: Request, res: Response) => {
   const result = await proxyService.forward(req.params.siteId as string, 'GET', '/products/count');
   res.status(result.status).json(result.data);
@@ -73,6 +83,16 @@ router.post('/sites/:siteId/posts', async (req: Request, res: Response) => {
 
 router.put('/sites/:siteId/posts/:postId', async (req: Request, res: Response) => {
   const result = await proxyService.forward(req.params.siteId as string, 'PUT', `/posts/${req.params.postId}`, undefined, req.body);
+  res.status(result.status).json(result.data);
+});
+
+router.get('/sites/:siteId/posts/:postId', async (req: Request, res: Response) => {
+  const result = await proxyService.forward(req.params.siteId as string, 'GET', `/posts/${req.params.postId}`);
+  res.status(result.status).json(result.data);
+});
+
+router.delete('/sites/:siteId/posts/:postId', async (req: Request, res: Response) => {
+  const result = await proxyService.forward(req.params.siteId as string, 'DELETE', `/posts/${req.params.postId}`);
   res.status(result.status).json(result.data);
 });
 

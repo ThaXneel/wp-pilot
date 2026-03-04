@@ -1,6 +1,7 @@
 import { prisma } from '../../config/database.js';
 import { AppError } from '../../middleware/errorHandler.js';
-import type { UpdateProfileInput, UpdatePreferencesInput } from './users.validation.js';
+import bcrypt from 'bcrypt';
+import type { UpdateProfileInput, UpdatePreferencesInput, ChangePasswordInput } from './users.validation.js';
 
 export const usersService = {
   async getProfile(userId: string) {
@@ -59,5 +60,25 @@ export const usersService = {
     });
 
     return user;
+  },
+
+  async changePassword(userId: string, input: ChangePasswordInput) {
+    const user = await prisma.user.findUnique({ where: { id: userId } });
+    if (!user) {
+      throw new AppError('User not found', 404);
+    }
+
+    const validPassword = await bcrypt.compare(input.currentPassword, user.password);
+    if (!validPassword) {
+      throw new AppError('Current password is incorrect', 401);
+    }
+
+    const hashedPassword = await bcrypt.hash(input.newPassword, 12);
+    await prisma.user.update({
+      where: { id: userId },
+      data: { password: hashedPassword },
+    });
+
+    return { message: 'Password changed successfully' };
   },
 };

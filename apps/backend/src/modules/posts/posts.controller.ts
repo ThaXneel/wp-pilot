@@ -30,4 +30,22 @@ export const postsController = {
       next(err);
     }
   },
+
+  async getById(req: Request, res: Response, next: NextFunction) {
+    try {
+      const data = await postsService.getById(req.user!.clientId!, req.params.id as string, req.query.siteId as string | undefined);
+      res.json({ success: true, data });
+    } catch (err) {
+      next(err);
+    }
+  },
+
+  async delete(req: Request, res: Response, next: NextFunction) {
+    try {
+      const data = await postsService.delete(req.user!.clientId!, req.params.id as string, req.query.siteId as string | undefined);
+      res.json({ success: true, data });
+    } catch (err) {
+      next(err);
+    }
+  },
 };

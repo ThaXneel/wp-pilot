@@ -33,7 +33,6 @@ class WP_Pilot_Connector {
 
         // Auto-handshake when settings are updated
         add_action('update_option_wp_pilot_api_token', [$this, 'try_handshake'], 10, 0);
-        add_action('update_option_wp_pilot_saas_url', [$this, 'try_handshake'], 10, 0);
 
         // Initialize heartbeat cron
         $heartbeat = new WP_Pilot_Heartbeat();
@@ -50,8 +49,10 @@ class WP_Pilot_Connector {
         if ($already_ran) return;
         $already_ran = true;
 
-        $token   = get_option('wp_pilot_api_token', '');
-        $saas_url = get_option('wp_pilot_saas_url', '');
+        $token = get_option('wp_pilot_api_token', '');
+
+        // Backend URL from wp-config.php constant, fallback to option (legacy)
+        $saas_url = defined('WP_PILOT_API_URL') ? WP_PILOT_API_URL : get_option('wp_pilot_saas_url', '');
 
         if (empty($token) || empty($saas_url)) {
             return;
@@ -142,8 +143,18 @@ class WP_Pilot_Connector {
             'permission_callback' => [$auth, 'validate_token'],
         ]);
         register_rest_route($namespace, '/products/(?P<id>\d+)', [
+            'methods' => 'GET',
+            'callback' => [$products, 'get_product'],
+            'permission_callback' => [$auth, 'validate_token'],
+        ]);
+        register_rest_route($namespace, '/products/(?P<id>\d+)', [
             'methods' => 'PUT',
             'callback' => [$products, 'update_product'],
+            'permission_callback' => [$auth, 'validate_token'],
+        ]);
+        register_rest_route($namespace, '/products/(?P<id>\d+)', [
+            'methods' => 'DELETE',
+            'callback' => [$products, 'delete_product'],
             'permission_callback' => [$auth, 'validate_token'],
         ]);
         register_rest_route($namespace, '/products/count', [
@@ -176,8 +187,18 @@ class WP_Pilot_Connector {
             'permission_callback' => [$auth, 'validate_token'],
         ]);
         register_rest_route($namespace, '/posts/(?P<id>\d+)', [
+            'methods' => 'GET',
+            'callback' => [$posts, 'get_post'],
+            'permission_callback' => [$auth, 'validate_token'],
+        ]);
+        register_rest_route($namespace, '/posts/(?P<id>\d+)', [
             'methods' => 'PUT',
             'callback' => [$posts, 'update_post'],
+            'permission_callback' => [$auth, 'validate_token'],
+        ]);
+        register_rest_route($namespace, '/posts/(?P<id>\d+)', [
+            'methods' => 'DELETE',
+            'callback' => [$posts, 'delete_post'],
             'permission_callback' => [$auth, 'validate_token'],
         ]);
         register_rest_route($namespace, '/posts/count', [
@@ -199,21 +220,26 @@ class WP_Pilot_Connector {
 
     public function register_settings() {
         register_setting('wp_pilot_settings', 'wp_pilot_api_token');
-        register_setting('wp_pilot_settings', 'wp_pilot_saas_url');
         register_setting('wp_pilot_settings', 'wp_pilot_site_id');
     }
 
     public function render_settings_page() {
         $token = get_option('wp_pilot_api_token', '');
-        $saas_url = get_option('wp_pilot_saas_url', '');
         $site_id = get_option('wp_pilot_site_id', '');
         $is_connected = !empty($site_id);
+        $saas_url = defined('WP_PILOT_API_URL') ? WP_PILOT_API_URL : get_option('wp_pilot_saas_url', '');
 
         // Show settings errors/notices from handshake
         settings_errors('wp_pilot_settings');
         ?>
         <div class="wrap">
             <h1>WP Pilot Connector</h1>
+
+            <?php if (empty($saas_url)): ?>
+                <div class="notice notice-warning">
+                    <p><strong>⚠️ Backend URL not configured.</strong> Add <code>define('WP_PILOT_API_URL', 'https://api.wppilot.com');</code> to your <code>wp-config.php</code> file.</p>
+                </div>
+            <?php endif; ?>
 
             <?php if ($is_connected): ?>
                 <div class="notice notice-success">
@@ -232,10 +258,10 @@ class WP_Pilot_Connector {
                         </td>
                     </tr>
                     <tr>
-                        <th>SaaS URL</th>
+                        <th>Backend URL</th>
                         <td>
-                            <input type="url" name="wp_pilot_saas_url" value="<?php echo esc_attr($saas_url); ?>" class="regular-text" />
-                            <p class="description">The URL of your WP Pilot backend (e.g., https://api.wppilot.com).</p>
+                            <code><?php echo esc_html(!empty($saas_url) ? $saas_url : '— not set —'); ?></code>
+                            <p class="description">Configured via <code>WP_PILOT_API_URL</code> constant in <code>wp-config.php</code>.</p>
                         </td>
                     </tr>
                     <tr>

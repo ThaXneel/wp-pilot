@@ -74,4 +74,22 @@ export const adminController = {
       next(err);
     }
   },
+
+  async getEmailSettings(_req: Request, res: Response, next: NextFunction) {
+    try {
+      const settings = await adminService.getEmailSettings();
+      res.json({ success: true, data: settings });
+    } catch (err) {
+      next(err);
+    }
+  },
+
+  async updateEmailSettings(req: Request, res: Response, next: NextFunction) {
+    try {
+      const settings = await adminService.updateEmailSettings(req.body);
+      res.json({ success: true, data: settings });
+    } catch (err) {
+      next(err);
+    }
+  },
 };

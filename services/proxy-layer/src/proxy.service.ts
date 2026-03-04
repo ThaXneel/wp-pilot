@@ -13,6 +13,7 @@ interface ProxyResult {
 
 export class ProxyService {
   private cache: CacheService;
+  private siteConfigCache: Map<string, { config: SiteConfig; expiresAt: number }> = new Map();
 
   constructor() {
     this.cache = new CacheService();
@@ -59,6 +60,7 @@ export class ProxyService {
           'Authorization': `Bearer ${site.apiToken}`,
         },
         body: body ? JSON.stringify(body) : undefined,
+        signal: AbortSignal.timeout(10000),
       });
 
       // Guard against non-JSON responses (e.g. HTML error pages from WP)
@@ -101,18 +103,30 @@ export class ProxyService {
    * In production, this would query the backend API or a shared DB.
    */
   private async getSiteConfig(siteId: string): Promise<SiteConfig | null> {
+    // Check in-memory cache first (30s TTL)
+    const cached = this.siteConfigCache.get(siteId);
+    if (cached && cached.expiresAt > Date.now()) {
+      return cached.config;
+    }
+
     try {
       const backendUrl = process.env.BACKEND_URL || 'http://localhost:3001';
       const response = await fetch(`${backendUrl}/api/sites/${siteId}/config`, {
         headers: {
           'X-Internal-Service': 'proxy-layer',
         },
+        signal: AbortSignal.timeout(5000),
       });
 
       if (!response.ok) return null;
 
       const data = await response.json() as { wpUrl: string; apiToken: string };
-      return { wpUrl: data.wpUrl, apiToken: data.apiToken };
+      const config = { wpUrl: data.wpUrl, apiToken: data.apiToken };
+
+      // Cache for 30 seconds
+      this.siteConfigCache.set(siteId, { config, expiresAt: Date.now() + 30000 });
+
+      return config;
     } catch {
       return null;
     }

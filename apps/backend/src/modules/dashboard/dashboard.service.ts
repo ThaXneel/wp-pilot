@@ -4,7 +4,7 @@ import { prisma } from '../../config/database.js';
 import { logger } from '../../config/logger.js';
 
 export const dashboardService = {
-  async getStats(clientId: string) {
+  async getStats(clientId: string, selectedSiteId?: string) {
     try {
       // Get sites with full details for the dashboard
       const rawSites = await prisma.clientSite.findMany({
@@ -38,17 +38,20 @@ export const dashboardService = {
       let orderCount = 0;
       let postCount = 0;
 
-      // Use the first active site for counts
-      const activeSite = rawSites.find((s) => s.status === 'ONLINE') ?? rawSites[0];
-      if (activeSite) {
+      // Use selected site, or first active site for counts
+      const targetSite = selectedSiteId
+        ? rawSites.find((s) => s.id === selectedSiteId)
+        : rawSites.find((s) => s.status === 'ONLINE') ?? rawSites[0];
+
+      if (targetSite) {
         try {
           const token = jwt.sign({ service: 'backend' }, env.JWT_SECRET, { expiresIn: '60s' });
           const headers = { Authorization: `Bearer ${token}` };
 
           const [productsRes, ordersRes, postsRes] = await Promise.all([
-            fetch(`${env.PROXY_URL}/proxy/sites/${activeSite.id}/products/count`, { headers }),
-            fetch(`${env.PROXY_URL}/proxy/sites/${activeSite.id}/orders/count`, { headers }),
-            fetch(`${env.PROXY_URL}/proxy/sites/${activeSite.id}/posts/count`, { headers }),
+            fetch(`${env.PROXY_URL}/proxy/sites/${targetSite.id}/products/count`, { headers }),
+            fetch(`${env.PROXY_URL}/proxy/sites/${targetSite.id}/orders/count`, { headers }),
+            fetch(`${env.PROXY_URL}/proxy/sites/${targetSite.id}/posts/count`, { headers }),
           ]);
 
           if (productsRes.ok) productCount = ((await productsRes.json()) as { count?: number }).count ?? 0;

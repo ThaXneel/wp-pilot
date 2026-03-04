@@ -27,12 +27,14 @@ interface DashboardStats {
 
 export default function DashboardPage() {
   const t = useTranslations("dashboard");
-  const { setSites } = useSiteStore();
+  const { setSites, selectedSiteId } = useSiteStore();
 
   const { data, isLoading } = useQuery({
-    queryKey: ["dashboard-stats"],
+    queryKey: ["dashboard-stats", selectedSiteId],
     queryFn: async () => {
-      const res = await api<DashboardStats>("/dashboard/stats");
+      const params = new URLSearchParams();
+      if (selectedSiteId) params.set("siteId", selectedSiteId);
+      const res = await api<DashboardStats>(`/dashboard/stats?${params}`);
       if (!res.success) throw new Error(res.error);
       return res.data;
     },

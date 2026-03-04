@@ -10,18 +10,19 @@ class WP_Pilot_Products {
 
         $args = [
             'status' => 'any',
-            'limit' => $request->get_param('limit') ?? 50,
-            'page' => $request->get_param('page') ?? 1,
+            'limit' => absint($request->get_param('limit') ?? 50),
+            'page' => absint($request->get_param('page') ?? 1),
+            'paginate' => true,
         ];
 
-        $products = wc_get_products($args);
+        $results = wc_get_products($args);
         $data = [];
 
-        foreach ($products as $product) {
+        foreach ($results->products as $product) {
             $data[] = $this->format_product($product);
         }
 
-        return rest_ensure_response(['products' => $data, 'total' => count($data)]);
+        return rest_ensure_response(['products' => $data, 'total' => $results->total]);
     }
 
     public function create_product($request) {
@@ -30,10 +31,10 @@ class WP_Pilot_Products {
         }
 
         $product = new WC_Product_Simple();
-        $product->set_name($request->get_param('title'));
-        $product->set_description($request->get_param('description') ?? '');
-        $product->set_regular_price($request->get_param('price'));
-        $product->set_status($request->get_param('status') ?? 'draft');
+        $product->set_name(sanitize_text_field($request->get_param('title')));
+        $product->set_description(wp_kses_post($request->get_param('description') ?? ''));
+        $product->set_regular_price(sanitize_text_field($request->get_param('price')));
+        $product->set_status(sanitize_text_field($request->get_param('status') ?? 'draft'));
         $product->save();
 
         return rest_ensure_response($this->format_product($product));
@@ -44,18 +45,46 @@ class WP_Pilot_Products {
             return new WP_Error('woocommerce_not_found', 'WooCommerce is not active.', ['status' => 400]);
         }
 
-        $product = wc_get_product($request->get_param('id'));
+        $product = wc_get_product(absint($request->get_param('id')));
         if (!$product) {
             return new WP_Error('product_not_found', 'Product not found.', ['status' => 404]);
         }
 
-        if ($request->get_param('title')) $product->set_name($request->get_param('title'));
-        if ($request->get_param('description')) $product->set_description($request->get_param('description'));
-        if ($request->get_param('price') !== null) $product->set_regular_price($request->get_param('price'));
-        if ($request->get_param('status')) $product->set_status($request->get_param('status'));
+        if ($request->get_param('title')) $product->set_name(sanitize_text_field($request->get_param('title')));
+        if ($request->get_param('description')) $product->set_description(wp_kses_post($request->get_param('description')));
+        if ($request->get_param('price') !== null) $product->set_regular_price(sanitize_text_field($request->get_param('price')));
+        if ($request->get_param('status')) $product->set_status(sanitize_text_field($request->get_param('status')));
         $product->save();
 
         return rest_ensure_response($this->format_product($product));
+    }
+
+    public function get_product($request) {
+        if (!class_exists('WooCommerce')) {
+            return new WP_Error('woocommerce_not_found', 'WooCommerce is not active.', ['status' => 400]);
+        }
+
+        $product = wc_get_product(absint($request->get_param('id')));
+        if (!$product) {
+            return new WP_Error('product_not_found', 'Product not found.', ['status' => 404]);
+        }
+
+        return rest_ensure_response($this->format_product($product));
+    }
+
+    public function delete_product($request) {
+        if (!class_exists('WooCommerce')) {
+            return new WP_Error('woocommerce_not_found', 'WooCommerce is not active.', ['status' => 400]);
+        }
+
+        $product = wc_get_product(absint($request->get_param('id')));
+        if (!$product) {
+            return new WP_Error('product_not_found', 'Product not found.', ['status' => 404]);
+        }
+
+        $product->delete(true);
+
+        return rest_ensure_response(['deleted' => true, 'id' => absint($request->get_param('id'))]);
     }
 
     public function count_products() {

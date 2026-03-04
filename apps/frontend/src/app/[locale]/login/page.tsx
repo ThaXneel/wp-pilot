@@ -16,6 +16,7 @@ export default function LoginPage() {
   const { login: storeLogin } = useAuthStore();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -35,9 +36,10 @@ export default function LoginPage() {
         };
         accessToken: string;
         refreshToken: string;
+        rememberMe: boolean;
       }>("/auth/login", {
         method: "POST",
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ email, password, rememberMe }),
         skipAuth: true,
       });
 
@@ -46,7 +48,7 @@ export default function LoginPage() {
         return;
       }
 
-      storeLogin(res.data.user, res.data.accessToken, res.data.refreshToken);
+      storeLogin(res.data.user, res.data.accessToken, res.data.refreshToken, res.data.rememberMe);
 
       if (res.data.user.role === "OWNER") {
         router.push("/admin/dashboard");
@@ -85,6 +87,18 @@ export default function LoginPage() {
               placeholder="••••••••"
               required
             />
+
+            <label className="flex items-center gap-2 cursor-pointer select-none">
+              <input
+                type="checkbox"
+                checked={rememberMe}
+                onChange={(e) => setRememberMe(e.target.checked)}
+                className="h-4 w-4 rounded border border-(--color-border) text-(--color-primary) focus:ring-(--color-ring)"
+              />
+              <span className="text-sm text-(--color-muted-foreground)">
+                {t("rememberMe")}
+              </span>
+            </label>
 
             {error && <p className="text-sm text-(--color-destructive)">{error}</p>}
 

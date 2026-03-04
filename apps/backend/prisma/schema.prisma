@@ -96,6 +96,7 @@ model ClientSite {
   activities   Activity[]
   globalEvents GlobalEvent[]
 
+  @@index([clientId])
   @@map("client_sites")
 }
 
@@ -109,6 +110,7 @@ model ConnectToken {
 
   client Client @relation(fields: [clientId], references: [id], onDelete: Cascade)
 
+  @@index([clientId])
   @@map("connect_tokens")
 }
 
@@ -123,6 +125,9 @@ model Activity {
   client Client      @relation(fields: [clientId], references: [id], onDelete: Cascade)
   site   ClientSite? @relation(fields: [siteId], references: [id], onDelete: SetNull)
 
+  @@index([clientId])
+  @@index([siteId])
+  @@index([createdAt])
   @@map("activities")
 }
 
@@ -136,6 +141,8 @@ model GlobalEvent {
 
   site ClientSite? @relation(fields: [siteId], references: [id], onDelete: SetNull)
 
+  @@index([siteId])
+  @@index([createdAt])
   @@map("global_events")
 }
 
@@ -150,4 +157,12 @@ model PasswordResetToken {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("password_reset_tokens")
+}
+
+model SystemSettings {
+  id    String @id @default("system")
+  key   String @unique
+  value String
+
+  @@map("system_settings")
 }

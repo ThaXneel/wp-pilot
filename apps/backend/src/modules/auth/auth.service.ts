@@ -12,8 +12,8 @@ function generateAccessToken(payload: { id: string; role: string; clientId?: str
   return jwt.sign(payload, env.JWT_SECRET, { expiresIn: '15m' });
 }
 
-function generateRefreshToken(payload: { id: string }): string {
-  return jwt.sign(payload, env.JWT_REFRESH_SECRET, { expiresIn: '7d' });
+function generateRefreshToken(payload: { id: string }, rememberMe = false): string {
+  return jwt.sign(payload, env.JWT_REFRESH_SECRET, { expiresIn: rememberMe ? '30d' : '7d' });
 }
 
 export const authService = {
@@ -76,7 +76,7 @@ export const authService = {
 
     const tokenPayload = { id: user.id, role: user.role, clientId: user.client?.id };
     const accessToken = generateAccessToken(tokenPayload);
-    const refreshToken = generateRefreshToken({ id: user.id });
+    const refreshToken = generateRefreshToken({ id: user.id }, input.rememberMe);
 
     logger.info(`User logged in: ${user.email}`);
 
@@ -90,6 +90,7 @@ export const authService = {
       },
       accessToken,
       refreshToken,
+      rememberMe: input.rememberMe ?? false,
     };
   },
 
@@ -138,8 +139,14 @@ export const authService = {
     // Send email via Resend
     if (resend) {
       try {
+        // Get configurable email settings from DB
+        const fromEmailSetting = await prisma.systemSettings.findUnique({ where: { key: 'email_from_address' } });
+        const fromNameSetting = await prisma.systemSettings.findUnique({ where: { key: 'email_from_name' } });
+        const fromEmail = fromEmailSetting?.value ?? 'noreply@wppilot.com';
+        const fromName = fromNameSetting?.value ?? 'WP Pilot';
+
         await resend.emails.send({
-          from: 'WP Pilot <noreply@wppilot.com>',
+          from: `${fromName} <${fromEmail}>`,
           to: user.email,
           subject: 'Reset your password',
           html: `

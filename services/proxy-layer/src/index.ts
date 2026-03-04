@@ -20,6 +20,12 @@ app.get('/health', (_req, res) => {
 // Proxy routes
 app.use('/proxy', proxyRoutes);
 
+// Global error handler
+app.use((err: Error, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
+  console.error('[Proxy] Unhandled error:', err.message);
+  res.status(500).json({ error: 'Internal proxy error' });
+});
+
 app.listen(PORT, () => {
   console.log(`[Proxy Layer] running on port ${PORT}`);
 });

@@ -58,7 +58,8 @@
     "resetSuccess": "Mot de passe réinitialisé. Vous pouvez maintenant vous connecter.",
     "tokenExpired": "Ce lien a expiré. Veuillez en demander un nouveau.",
     "passwordMismatch": "Les mots de passe ne correspondent pas.",
-    "passwordTooShort": "Le mot de passe doit contenir au moins 8 caractères."
+    "passwordTooShort": "Le mot de passe doit contenir au moins 8 caractères.",
+    "rememberMe": "Se souvenir de moi pendant 30 jours"
   },
   "dashboard": {
     "title": "Tableau de bord",
@@ -308,7 +309,14 @@
     "suspend": "Suspendre",
     "activate": "Activer",
     "siteCount": "Sites",
-    "healthScore": "Santé"
+    "healthScore": "Santé",
+    "settingsTitle": "Paramètres administrateur",
+    "emailSettings": "Configuration du courriel",
+    "emailSettingsDesc": "Configurez l'adresse courriel d'expédition utilisée pour les réinitialisations de mot de passe et les notifications système.",
+    "fromName": "Nom de l'expéditeur",
+    "fromEmail": "Courriel de l'expéditeur",
+    "saveSettings": "Enregistrer les paramètres",
+    "settingsSaved": "Paramètres enregistrés avec succès."
   },
   "landing": {
     "heroTitle": "Gérez votre entreprise WordPress sans wp-admin",

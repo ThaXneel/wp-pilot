@@ -3,7 +3,7 @@ import { adminController } from './admin.controller.js';
 import { authenticate } from '../../middleware/authenticate.js';
 import { authorize } from '../../middleware/authorize.js';
 import { validate } from '../../middleware/validate.js';
-import { createClientSchema, updateClientStatusSchema } from './admin.validation.js';
+import { createClientSchema, updateClientStatusSchema, updateEmailSettingsSchema } from './admin.validation.js';
 
 export const adminRoutes = Router();
 
@@ -16,3 +16,5 @@ adminRoutes.put('/clients/:id/status', validate(updateClientStatusSchema), admin
 adminRoutes.get('/sites', adminController.listSites);
 adminRoutes.get('/activity', adminController.listActivity);
 adminRoutes.get('/errors', adminController.listErrors);
+adminRoutes.get('/settings/email', adminController.getEmailSettings);
+adminRoutes.put('/settings/email', validate(updateEmailSettingsSchema), adminController.updateEmailSettings);

@@ -26,7 +26,7 @@ class WP_Pilot_Heartbeat {
     }
 
     public function send_heartbeat() {
-        $saas_url = get_option('wp_pilot_saas_url', '');
+        $saas_url = defined('WP_PILOT_API_URL') ? WP_PILOT_API_URL : get_option('wp_pilot_saas_url', '');
         $api_token = get_option('wp_pilot_api_token', '');
         $site_id = get_option('wp_pilot_site_id', '');
 

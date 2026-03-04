@@ -4,14 +4,15 @@ import { beforeAll, afterAll } from 'vitest';
 const prisma = new PrismaClient();
 
 beforeAll(async () => {
-  // Clean test database
-  await prisma.$executeRawUnsafe('DELETE FROM "Activity"');
-  await prisma.$executeRawUnsafe('DELETE FROM "ConnectToken"');
-  await prisma.$executeRawUnsafe('DELETE FROM "ClientSite"');
-  await prisma.$executeRawUnsafe('DELETE FROM "PasswordResetToken"');
-  await prisma.$executeRawUnsafe('DELETE FROM "GlobalEvent"');
-  await prisma.$executeRawUnsafe('DELETE FROM "Client"');
-  await prisma.$executeRawUnsafe('DELETE FROM "User"');
+  // Clean test database (table names match @@map in schema.prisma)
+  await prisma.$executeRawUnsafe('DELETE FROM "activities"');
+  await prisma.$executeRawUnsafe('DELETE FROM "connect_tokens"');
+  await prisma.$executeRawUnsafe('DELETE FROM "client_sites"');
+  await prisma.$executeRawUnsafe('DELETE FROM "password_reset_tokens"');
+  await prisma.$executeRawUnsafe('DELETE FROM "global_events"');
+  await prisma.$executeRawUnsafe('DELETE FROM "system_settings"');
+  await prisma.$executeRawUnsafe('DELETE FROM "clients"');
+  await prisma.$executeRawUnsafe('DELETE FROM "users"');
 });
 
 afterAll(async () => {

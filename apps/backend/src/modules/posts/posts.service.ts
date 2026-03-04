@@ -68,4 +68,37 @@ export const postsService = {
       throw new AppError('Failed to update post', 502);
     }
   },
+
+  async getById(clientId: string, postId: string, siteId?: string) {
+    try {
+      const site = await resolveActiveSite(clientId, siteId);
+      const token = serviceToken();
+      const response = await fetch(`${env.PROXY_URL}/proxy/sites/${site.id}/posts/${postId}`, {
+        headers: { 'Authorization': `Bearer ${token}` },
+      });
+      const data = await response.json();
+      return data;
+    } catch (err) {
+      if (err instanceof AppError) throw err;
+      logger.error('Failed to fetch post from proxy', { error: (err as Error).message });
+      throw new AppError('Failed to fetch post', 502);
+    }
+  },
+
+  async delete(clientId: string, postId: string, siteId?: string) {
+    try {
+      const site = await resolveActiveSite(clientId, siteId);
+      const token = serviceToken();
+      const response = await fetch(`${env.PROXY_URL}/proxy/sites/${site.id}/posts/${postId}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${token}` },
+      });
+      const data = await response.json();
+      return data;
+    } catch (err) {
+      if (err instanceof AppError) throw err;
+      logger.error('Failed to delete post via proxy', { error: (err as Error).message });
+      throw new AppError('Failed to delete post', 502);
+    }
+  },
 };

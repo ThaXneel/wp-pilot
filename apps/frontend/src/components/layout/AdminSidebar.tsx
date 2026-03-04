@@ -10,6 +10,7 @@ import {
   Globe,
   Activity,
   AlertTriangle,
+  Settings,
   Menu,
   X,
 } from "lucide-react";
@@ -27,6 +28,7 @@ function AdminSidebar() {
     { href: `/${locale}/admin/sites`, label: t("sites"), icon: Globe },
     { href: `/${locale}/admin/activity`, label: t("activity"), icon: Activity },
     { href: `/${locale}/admin/errors`, label: t("errors"), icon: AlertTriangle },
+    { href: `/${locale}/admin/settings`, label: t("settings"), icon: Settings },
   ];
 
   const nav = (

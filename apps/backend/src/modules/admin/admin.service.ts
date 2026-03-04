@@ -1,11 +1,11 @@
 import bcrypt from 'bcryptjs';
 import { prisma } from '../../config/database.js';
 import { AppError } from '../../middleware/errorHandler.js';
-import type { CreateClientInput, UpdateClientStatusInput } from './admin.validation.js';
+import type { CreateClientInput, UpdateClientStatusInput, UpdateEmailSettingsInput } from './admin.validation.js';
 
 export const adminService = {
   async getOverview() {
-    const [totalClients, totalSites, sitesOnline, sitesOffline, recentErrors] = await Promise.all([
+    const [totalClients, totalSites, sitesOnline, sitesOffline, recentErrors, recentActivity] = await Promise.all([
       prisma.client.count(),
       prisma.clientSite.count(),
       prisma.clientSite.count({ where: { status: 'ONLINE' } }),
@@ -16,12 +16,27 @@ export const adminService = {
           createdAt: { gte: new Date(Date.now() - 24 * 60 * 60 * 1000) },
         },
       }),
+      prisma.activity.findMany({
+        take: 10,
+        orderBy: { createdAt: 'desc' },
+        include: {
+          client: { include: { user: { select: { email: true } } } },
+        },
+      }),
     ]);
 
     return {
-      clients: totalClients,
-      sites: { total: totalSites, online: sitesOnline, offline: sitesOffline },
-      errorsLast24h: recentErrors,
+      totalClients,
+      totalSites,
+      sitesOnline,
+      sitesOffline,
+      recentErrors,
+      recentActivity: recentActivity.map((a) => ({
+        id: a.id,
+        action: a.action,
+        clientEmail: a.client.user.email,
+        createdAt: a.createdAt.toISOString(),
+      })),
     };
   },
 
@@ -126,5 +141,32 @@ export const adminService = {
       errors,
       pagination: { page, limit, total, totalPages: Math.ceil(total / limit) },
     };
+  },
+
+  async getEmailSettings() {
+    const fromEmail = await prisma.systemSettings.findUnique({ where: { key: 'email_from_address' } });
+    const fromName = await prisma.systemSettings.findUnique({ where: { key: 'email_from_name' } });
+
+    return {
+      fromEmail: fromEmail?.value ?? 'noreply@wppilot.com',
+      fromName: fromName?.value ?? 'WP Pilot',
+    };
+  },
+
+  async updateEmailSettings(input: UpdateEmailSettingsInput) {
+    await Promise.all([
+      prisma.systemSettings.upsert({
+        where: { key: 'email_from_address' },
+        update: { value: input.fromEmail },
+        create: { key: 'email_from_address', value: input.fromEmail },
+      }),
+      prisma.systemSettings.upsert({
+        where: { key: 'email_from_name' },
+        update: { value: input.fromName },
+        create: { key: 'email_from_name', value: input.fromName },
+      }),
+    ]);
+
+    return { fromEmail: input.fromEmail, fromName: input.fromName };
   },
 };

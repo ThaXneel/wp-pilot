@@ -58,7 +58,8 @@
     "resetSuccess": "Password reset successfully. You can now log in.",
     "tokenExpired": "This link has expired. Please request a new one.",
     "passwordMismatch": "Passwords do not match.",
-    "passwordTooShort": "Password must be at least 8 characters."
+    "passwordTooShort": "Password must be at least 8 characters.",
+    "rememberMe": "Remember me for 30 days"
   },
   "dashboard": {
     "title": "Dashboard",
@@ -308,7 +309,14 @@
     "suspend": "Suspend",
     "activate": "Activate",
     "siteCount": "Sites",
-    "healthScore": "Health"
+    "healthScore": "Health",
+    "settingsTitle": "Admin Settings",
+    "emailSettings": "Email Configuration",
+    "emailSettingsDesc": "Configure the sender email address used for password reset emails and other system notifications.",
+    "fromName": "Sender Name",
+    "fromEmail": "Sender Email",
+    "saveSettings": "Save Settings",
+    "settingsSaved": "Settings saved successfully."
   },
   "landing": {
     "heroTitle": "Manage your WordPress business without wp-admin",

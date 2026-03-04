@@ -68,4 +68,37 @@ export const productsService = {
       throw new AppError('Failed to update product', 502);
     }
   },
+
+  async getById(clientId: string, productId: string, siteId?: string) {
+    try {
+      const site = await resolveActiveSite(clientId, siteId);
+      const token = serviceToken();
+      const response = await fetch(`${env.PROXY_URL}/proxy/sites/${site.id}/products/${productId}`, {
+        headers: { 'Authorization': `Bearer ${token}` },
+      });
+      const data = await response.json();
+      return data;
+    } catch (err) {
+      if (err instanceof AppError) throw err;
+      logger.error('Failed to fetch product from proxy', { error: (err as Error).message });
+      throw new AppError('Failed to fetch product', 502);
+    }
+  },
+
+  async delete(clientId: string, productId: string, siteId?: string) {
+    try {
+      const site = await resolveActiveSite(clientId, siteId);
+      const token = serviceToken();
+      const response = await fetch(`${env.PROXY_URL}/proxy/sites/${site.id}/products/${productId}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${token}` },
+      });
+      const data = await response.json();
+      return data;
+    } catch (err) {
+      if (err instanceof AppError) throw err;
+      logger.error('Failed to delete product via proxy', { error: (err as Error).message });
+      throw new AppError('Failed to delete product', 502);
+    }
+  },
 };

@@ -28,4 +28,13 @@ export const usersController = {
       next(err);
     }
   },
+
+  async changePassword(req: Request, res: Response, next: NextFunction) {
+    try {
+      const result = await usersService.changePassword(req.user!.id, req.body);
+      res.json({ success: true, data: result });
+    } catch (err) {
+      next(err);
+    }
+  },
 };

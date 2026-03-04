@@ -9,7 +9,7 @@ describe('Admin Module', () => {
     // Login as owner (seeded user)
     const res = await request(app)
       .post('/api/auth/login')
-      .send({ email: 'owner@wppilot.com', password: 'OwnerPass123!' });
+      .send({ email: 'owner@wppilot.com', password: 'owner123!' });
 
     if (res.body.success) {
       ownerToken = res.body.data.accessToken;
