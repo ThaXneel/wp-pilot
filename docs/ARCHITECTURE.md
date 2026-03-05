@@ -2,9 +2,9 @@
 
 ## Architecture & Implementation Documentation
 
-**Version:** 2.0  
+**Version:** 2.1  
 **Developer:** NEXNEEL  
-**Last Updated:** 2025
+**Last Updated:** March 2026
 
 ---
 
@@ -136,12 +136,13 @@ OBMAT (Online Business Manager Tool) is a multi-tenant SaaS platform that connec
 
 ### Remember Me (30 Days)
 
-The "Remember Me" feature is fully implemented:
+The "Remember Me" feature is fully implemented with refresh-token propagation:
 
 1. **Frontend:** Login page checkbox → sends `rememberMe: true` to `/api/auth/login`
 2. **Backend:** `auth.service.ts` generates refresh token with 30d expiry when `rememberMe` is true
-3. **Storage:** `authStore` uses `localStorage` when rememberMe is true, `sessionStorage` when false
-4. **Persist Key:** `obmat-auth`
+3. **Token propagation:** The `rememberMe` flag is encoded inside the JWT refresh token payload. When `authService.refresh()` is called, it extracts `rememberMe` from the expiring token and carries it into the new refresh token — so the 30-day window is preserved through every token rotation cycle.
+4. **Storage:** `authStore` uses a module-level `useLocalStorage` flag that is set BEFORE Zustand's `set()` writes, ensuring the correct storage backend (`localStorage` for rememberMe, `sessionStorage` otherwise) is used reliably.
+5. **Persist Key:** `obmat-auth`
 
 ### Security Middleware Stack
 
@@ -315,7 +316,11 @@ obmat-connector/
 | Store | Persist Key | Purpose |
 |-------|------------|---------|
 | `authStore` | `obmat-auth` | JWT tokens, user data, rememberMe |
-| `siteStore` | `obmat-site` | Selected site, sidebar collapse |
+| `siteStore` | `obmat-site` | Sites list, selected site, sidebar collapse |
+
+### SitesProvider
+
+A `<SitesProvider>` component wraps the app layout inside `QueryClientProvider`. It independently fetches `GET /api/sites` and syncs the result into `siteStore.setSites()`. This ensures the site selector in the Topbar is always populated — not just when the user is on the dashboard page. The query uses a 2-minute `staleTime` and refetches on window focus.
 
 ### Dashboard Features
 
@@ -345,10 +350,23 @@ obmat-connector/
 
 Acts as a secure intermediary between the backend and WordPress sites:
 - Forwards requests to WordPress REST API at `/wp-json/obmat-connector/v1/`
-- Caches GET responses in Redis (60-second TTL)
-- Invalidates cache on write operations
+- Caches GET responses in **Redis** (60-second TTL) via `CacheService` (ioredis)
+- Invalidates cache on write operations (`POST`, `PUT`, `DELETE` → clears matching resource pattern)
 - Uses in-memory site config cache (30-second TTL)
 - Authenticated via internal JWT (service-to-service)
+- Guards against non-JSON WordPress responses (HTML error pages)
+
+### Route Ordering
+
+**Important:** Static `/count` routes are registered **before** dynamic `/:id` routes to prevent Express from matching `count` as an ID parameter. This applies to products, orders, and posts.
+
+### Redis Usage
+
+| Service | Redis Usage |
+|---------|------------|
+| Proxy Layer | Response caching (60s TTL for GET requests, pattern invalidation on writes) |
+| Backend | Health check ping (`redis.ping()`) — auth is purely JWT-based, no session storage |
+| EventBus | In-memory (TODO: upgrade to Redis Pub/Sub for multi-instance scaling) |
 
 ### Port: 4000
 

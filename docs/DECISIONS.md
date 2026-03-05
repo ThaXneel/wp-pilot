@@ -135,3 +135,65 @@ Why this choice was made.
 
 **Impact**
 What changes in the project.
+
+---
+
+## 2026-03-05 — RememberMe propagation in refresh tokens
+**Decision**
+Encode the `rememberMe` boolean inside the JWT refresh token payload. On `authService.refresh()`, extract it from the expiring token and carry it forward into the new refresh token.
+
+**Reason**
+Previously, the refresh endpoint always issued a default 7-day token, losing the 30-day window after the first 15-minute access token expiry. Users who checked "Remember Me" were silently downgraded.
+
+**Impact**
+`auth.service.ts` updated: `generateRefreshToken` now includes `rememberMe` in the JWT payload. The `refresh()` method reads it back and preserves the correct expiry (30d or 7d). Auth tests verify end-to-end propagation.
+
+---
+
+## 2026-03-05 — SitesProvider for layout-level site fetching
+**Decision**
+Create a `<SitesProvider>` component that fetches `GET /api/sites` independently and mount it at the app layout level, wrapping all pages.
+
+**Reason**
+The site selector in the Topbar was empty on non-dashboard pages because `siteStore.sites[]` was only populated by the dashboard's `useEffect`. The `siteStore` also didn't persist the sites array — only `selectedSiteId` was persisted.
+
+**Impact**
+- `siteStore` now persists `sites` in addition to `selectedSiteId` and `sidebarCollapsed`.
+- `SitesProvider` runs a `useQuery(["sites-list"])` with 2-minute stale time and refetch-on-focus.
+- App layout wraps `<SitesProvider>` inside `<QueryClientProvider>`.
+
+---
+
+## 2026-03-05 — Proxy route ordering (static before dynamic)
+**Decision**
+Register `/count` routes before `/:id` routes in the proxy layer's Express router.
+
+**Reason**
+Express matches routes top-down. With `/products/:productId` registered before `/products/count`, the string `"count"` was captured as a `productId` parameter. The proxy then tried to fetch a single product with ID "count" from WordPress, which failed silently.
+
+**Impact**
+`proxy.routes.ts` reordered: all `/count` endpoints now appear before any `/:id` endpoints for products, orders, and posts.
+
+---
+
+## 2026-03-05 — Redis audit results
+**Decision**
+Keep Redis on Railway. It is actively used by the proxy layer for response caching (ioredis, 60s TTL). The backend only uses it for health-check pings; auth is purely JWT-based.
+
+**Reason**
+Audited all Redis usage across the codebase. The proxy layer's `CacheService` uses ioredis for `get`, `setex`, and `scan`+`del` (pattern invalidation). The backend's `EventBus` is in-memory (future candidate for Redis Pub/Sub).
+
+**Impact**
+No changes needed. Redis remains a production dependency for proxy-layer caching performance.
+
+---
+
+## 2026-03-05 — PROXY_URL default port correction
+**Decision**
+Change the `PROXY_URL` default in `env.ts` from `http://localhost:5001` to `http://localhost:4000` to match the actual proxy layer port.
+
+**Reason**
+The proxy layer runs on port 4000 (hardcoded in `proxy-layer/src/index.ts`). The wrong default caused local development to silently fail when the env var wasn't explicitly set.
+
+**Impact**
+`env.ts` updated. Only affects local dev (production uses the PROXY_URL env var from Railway).
