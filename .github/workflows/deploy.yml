@@ -6,6 +6,13 @@ on:
     types: [completed]
     branches: [main]
   workflow_dispatch:
+    inputs:
+      deploy_webhook_url:
+        description: "Backend deploy webhook URL (leave empty to skip)"
+        required: false
+      vercel_token:
+        description: "Vercel deploy token (leave empty to skip)"
+        required: false
 
 jobs:
   deploy-backend:
@@ -15,16 +22,15 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 24
           cache: "npm"
       - run: npm ci
       - run: npm run build --workspace=apps/backend
-      # Railway / Render deploy hook
+      # Railway auto-deploys via Git integration.
+      # Use workflow_dispatch with deploy_webhook_url for manual trigger.
       - name: Deploy Backend
-        if: env.DEPLOY_WEBHOOK_URL != ''
-        env:
-          DEPLOY_WEBHOOK_URL: ${{ secrets.BACKEND_DEPLOY_WEBHOOK }}
-        run: curl -X POST "$DEPLOY_WEBHOOK_URL"
+        if: inputs.deploy_webhook_url != ''
+        run: curl -X POST "${{ inputs.deploy_webhook_url }}"
 
   deploy-frontend:
     runs-on: ubuntu-latest
@@ -33,13 +39,11 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 24
           cache: "npm"
       - run: npm ci
-      # Vercel deploys automatically via Git integration
-      # This step is a fallback for manual triggers
+      # Vercel auto-deploys via Git integration.
+      # Use workflow_dispatch with vercel_token for manual trigger.
       - name: Deploy Frontend
-        if: env.VERCEL_TOKEN != ''
-        env:
-          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-        run: npx vercel --prod --token=$VERCEL_TOKEN
+        if: inputs.vercel_token != ''
+        run: npx vercel --prod --token="${{ inputs.vercel_token }}"

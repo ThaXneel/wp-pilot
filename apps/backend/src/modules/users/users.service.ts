@@ -68,7 +68,7 @@ export const usersService = {
       throw new AppError('User not found', 404);
     }
 
-    const validPassword = await bcrypt.compare(input.currentPassword, user.password);
+    const validPassword = await bcrypt.compare(input.currentPassword, user.passwordHash);
     if (!validPassword) {
       throw new AppError('Current password is incorrect', 401);
     }
@@ -76,7 +76,7 @@ export const usersService = {
     const hashedPassword = await bcrypt.hash(input.newPassword, 12);
     await prisma.user.update({
       where: { id: userId },
-      data: { password: hashedPassword },
+      data: { passwordHash: hashedPassword },
     });
 
     return { message: 'Password changed successfully' };

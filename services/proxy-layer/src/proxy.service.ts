@@ -110,7 +110,7 @@ export class ProxyService {
     }
 
     try {
-      const backendUrl = process.env.BACKEND_URL || 'http://localhost:3001';
+      const backendUrl = process.env.BACKEND_URL || 'http://localhost:5000';
       const response = await fetch(`${backendUrl}/api/sites/${siteId}/config`, {
         headers: {
           'X-Internal-Service': 'proxy-layer',

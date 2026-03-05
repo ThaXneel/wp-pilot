@@ -219,8 +219,8 @@ Updated dashboard UI
 ### Plugin Structure
 
 ```
-wp-pilot-connector/
-├── wp-pilot-connector.php    # Main plugin file
+obmat-connector/
+├── wp-pilot-connector.php    # Main plugin file (legacy filename)
 ├── readme.txt                # WordPress readme
 └── includes/
     ├── class-auth.php        # Bearer token authentication

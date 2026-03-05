@@ -22,7 +22,7 @@ interface AuthState {
 }
 
 // Custom storage that delegates to localStorage or sessionStorage based on rememberMe
-const authStorage = createJSONStorage<AuthState>(() => {
+const authStorage = createJSONStorage(() => {
   if (typeof window === "undefined") return sessionStorage;
   // Check if user previously chose "remember me"
   const stored = localStorage.getItem("obmat-auth");

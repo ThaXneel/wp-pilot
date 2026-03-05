@@ -4,11 +4,11 @@ import cors from 'cors';
 import { proxyRoutes } from './proxy.routes.js';
 
 const app = express();
-const PORT = process.env.PROXY_PORT || 4000;
+const PORT = process.env.PORT || 4000;
 
 app.use(helmet());
 app.use(cors({
-  origin: process.env.BACKEND_URL || 'http://localhost:3001',
+  origin: process.env.BACKEND_URL || 'http://localhost:5000',
 }));
 app.use(express.json());
 

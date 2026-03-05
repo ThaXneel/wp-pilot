@@ -21,16 +21,22 @@ export const eventsController = {
     const clientId = req.user?.clientId;
     const userId = req.user?.id;
 
-    // Set SSE headers
+    // Set SSE headers (Railway / nginx / Caddy compatible)
     res.writeHead(200, {
       'Content-Type': 'text/event-stream',
-      'Cache-Control': 'no-cache',
+      'Cache-Control': 'no-cache, no-transform',
       Connection: 'keep-alive',
-      'X-Accel-Buffering': 'no', // Disable nginx buffering
+      'X-Accel-Buffering': 'no',   // Disable nginx buffering
+      'X-Railway-Streaming': '1',  // Tell Railway this is a streaming response
     });
 
-    // Send initial connection event
-    res.write(`event: connected\ndata: ${JSON.stringify({ message: 'SSE connected', userId })}\n\n`);
+    // Flush headers immediately
+    if (typeof (res as any).flushHeaders === 'function') {
+      (res as any).flushHeaders();
+    }
+
+    // Send initial connection event with retry hint (5s reconnect)
+    res.write(`retry: 5000\nevent: connected\ndata: ${JSON.stringify({ message: 'SSE connected', userId })}\n\n`);
 
     // Keep-alive ping every 30 seconds
     const keepAlive = setInterval(() => {

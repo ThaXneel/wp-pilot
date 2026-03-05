@@ -264,7 +264,7 @@ npm run db:studio        # Open Prisma Studio GUI
 
 ### For End Users
 
-1. Download the `obmat-connector` plugin from `wordpress-plugin/wp-pilot-connector/`
+1. Download the `obmat-connector` plugin from `wordpress-plugin/obmat-connector/`
 2. Upload and activate it in your WordPress site (WP Admin → Plugins → Add New → Upload)
 3. Go to WP Admin → Settings → OBMAT
 4. In the OBMAT dashboard, go through the Onboarding wizard:

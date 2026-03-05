@@ -1,7 +1,13 @@
 import { z } from 'zod';
 import dotenv from 'dotenv';
+import fs from 'node:fs';
+import path from 'node:path';
 
-dotenv.config({ path: '../../.env' });
+// Load .env file for local development; on Railway env vars are injected directly
+const envPath = path.resolve(process.cwd(), '../../.env');
+if (fs.existsSync(envPath)) {
+  dotenv.config({ path: envPath });
+}
 
 const envSchema = z.object({
   DATABASE_URL: z.string().url(),

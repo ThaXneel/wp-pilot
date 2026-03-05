@@ -1,4 +1,4 @@
-# Deploy to Railway — Step-by-Step Guide
+# Deploy OBMAT to Railway — Step-by-Step Guide
 
 ## Prerequisites
 
@@ -28,7 +28,7 @@ railway login
 1. Go to [https://railway.app/dashboard](https://railway.app/dashboard)
 2. Click **"New Project"**
 3. Select **"Empty Project"**
-4. Name it: `wp-pilot` (or whatever you prefer)
+4. Name it: `obmat` (or whatever you prefer)
 
 ---
 
@@ -85,20 +85,18 @@ DATABASE_URL=postgresql://postgres:xxxx@postgres.railway.internal:5432/railway
 # Redis (use the Railway Redis internal URL)
 REDIS_URL=redis://default:xxxx@redis.railway.internal:6379
 
-# JWT
-JWT_SECRET=your-super-secret-jwt-key-change-this
-JWT_EXPIRES_IN=7d
+# JWT (generate strong secrets — at least 32 characters each)
+JWT_SECRET=your-super-secret-jwt-key-change-this-min-32-chars
+JWT_REFRESH_SECRET=your-super-secret-refresh-key-change-this-min-32-chars
 
 # Email (Resend)
 RESEND_API_KEY=re_xxxxxxxxxxxx
-EMAIL_FROM=noreply@yourdomain.com
 
 # Frontend URL (update after deploying frontend)
 FRONTEND_URL=https://your-frontend.up.railway.app
 
-# Admin seed
-ADMIN_EMAIL=admin@yourdomain.com
-ADMIN_PASSWORD=YourSecurePassword123!
+# Backend public URL (needed for WP plugin and CORS)
+BACKEND_URL=https://your-backend.up.railway.app
 ```
 
 > **Important**: Use the **internal** Railway URLs (`*.railway.internal`) for PostgreSQL and Redis — they're faster and free (no egress charges).
@@ -111,10 +109,12 @@ In **Settings** → **Deploy** section:
 |---|---|
 | **Custom Start Command** | `npx prisma migrate deploy && npx prisma db seed && npm start` |
 
+> Note: The seed command is safe to re-run — it uses `upsert` operations.
+
 ### 5d. Expose the backend publicly
 
 1. **Settings** → **Networking** → **Generate Domain**
-2. You'll get something like: `wp-pilot-backend.up.railway.app`
+2. You'll get something like: `obmat-backend.up.railway.app`
 3. Note this URL — it's your `BACKEND_URL`
 
 ### 5e. Deploy
@@ -143,13 +143,15 @@ Click **"Deploy"** or push to your GitHub repo — Railway auto-deploys.
 NODE_ENV=production
 PORT=4000
 REDIS_URL=redis://default:xxxx@redis.railway.internal:6379
+BACKEND_URL=http://backend.railway.internal:5000
+JWT_SECRET=<same JWT_SECRET as backend>
 ```
 
 ### 6d. Generate domain
 
 **Settings** → **Networking** → **Generate Domain**
 
-> e.g., `wp-pilot-proxy.up.railway.app`
+> e.g., `obmat-proxy.up.railway.app`
 
 ---
 
@@ -170,11 +172,10 @@ REDIS_URL=redis://default:xxxx@redis.railway.internal:6379
 
 ```env
 NODE_ENV=production
-NEXT_PUBLIC_API_URL=https://wp-pilot-backend.up.railway.app
-NEXT_PUBLIC_APP_URL=https://wp-pilot-frontend.up.railway.app
+NEXT_PUBLIC_API_URL=https://obmat-backend.up.railway.app/api
 ```
 
-4. Generate domain → e.g., `wp-pilot-frontend.up.railway.app`
+4. Generate domain → e.g., `obmat-frontend.up.railway.app`
 
 ### Option B: Deploy on Vercel (Recommended — Free)
 
@@ -184,8 +185,7 @@ NEXT_PUBLIC_APP_URL=https://wp-pilot-frontend.up.railway.app
 4. Add environment variables:
 
 ```env
-NEXT_PUBLIC_API_URL=https://wp-pilot-backend.up.railway.app
-NEXT_PUBLIC_APP_URL=https://your-app.vercel.app
+NEXT_PUBLIC_API_URL=https://obmat-backend.up.railway.app/api
 ```
 
 5. Deploy
@@ -199,7 +199,7 @@ Now that all services have URLs, go back and update the environment variables:
 ### Backend Variables (update)
 
 ```env
-FRONTEND_URL=https://wp-pilot-frontend.up.railway.app
+FRONTEND_URL=https://obmat-frontend.up.railway.app
 # OR if using Vercel:
 FRONTEND_URL=https://your-app.vercel.app
 ```
@@ -207,7 +207,7 @@ FRONTEND_URL=https://your-app.vercel.app
 ### Frontend Variables (update)
 
 ```env
-NEXT_PUBLIC_API_URL=https://wp-pilot-backend.up.railway.app
+NEXT_PUBLIC_API_URL=https://obmat-backend.up.railway.app/api
 ```
 
 ---
@@ -230,19 +230,19 @@ railway run npx prisma db seed
 ### Check backend health
 
 ```bash
-curl https://wp-pilot-backend.up.railway.app/api/health
-# Expected: { "status": "ok", "database": "connected", "redis": "connected" }
+curl https://obmat-backend.up.railway.app/api/health
+# Expected: { "success": true, "data": { "status": "ok", "timestamp": "..." } }
 ```
 
 ### Check frontend
 
-Open `https://wp-pilot-frontend.up.railway.app` in your browser.
+Open `https://obmat-frontend.up.railway.app` in your browser.
 
 ### Test WordPress plugin connection
 
-1. Install the WP Pilot Connector plugin on your WordPress site
-2. Go to **Settings → WP Pilot**
-3. Set **SaaS URL** to: `https://wp-pilot-backend.up.railway.app`
+1. Install the **OBMAT Connector** plugin on your WordPress site
+2. Go to **Settings → OBMAT**
+3. Set **SaaS URL** to: `https://obmat-backend.up.railway.app`
 4. Paste your connect token
 5. Click **Save Changes** — the handshake should succeed!
 
@@ -254,7 +254,7 @@ Open `https://wp-pilot-frontend.up.railway.app` in your browser.
 
 1. Click on a service → **Settings** → **Networking**
 2. Click **"+ Custom Domain"**
-3. Enter your domain: `api.wppilot.com`
+3. Enter your domain: `api.obmat.com`
 4. Add the CNAME record shown in your DNS provider
 5. Railway auto-provisions SSL
 
@@ -262,9 +262,9 @@ Open `https://wp-pilot-frontend.up.railway.app` in your browser.
 
 | Subdomain | Service |
 |---|---|
-| `app.wppilot.com` | Frontend |
-| `api.wppilot.com` | Backend |
-| `proxy.wppilot.com` | Proxy Layer |
+| `app.obmat.com` | Frontend |
+| `api.obmat.com` | Backend |
+| `proxy.obmat.com` | Proxy Layer |
 
 ---
 
@@ -291,7 +291,7 @@ Open `https://wp-pilot-frontend.up.railway.app` in your browser.
          ▲                          ▲
          │                          │
     WordPress Sites            User Browsers
-    (WP Plugin)
+    (OBMAT WP Plugin)
 ```
 
 ---
@@ -357,12 +357,18 @@ Your existing GitHub Actions in `.github/workflows/deploy.yml` can be simplified
 ### Database connection fails
 - Use internal URLs (`postgres.railway.internal`) not public URLs
 - Check that `DATABASE_URL` format is correct
+- Ensure `JWT_REFRESH_SECRET` is set (at least 32 characters)
 
 ### Frontend can't reach backend
 - Ensure `NEXT_PUBLIC_API_URL` points to the **public** backend URL (not internal)
-- Check CORS settings in backend allow the frontend domain
+- Check CORS settings — `FRONTEND_URL` on the backend must match the frontend's public URL exactly
 
 ### WordPress plugin can't connect
 - Ensure backend is using the **public** Railway domain (not internal)
 - Check that `/api/onboarding/handshake` endpoint is accessible
-- Test with: `curl -X POST https://wp-pilot-backend.up.railway.app/api/onboarding/handshake`
+- Test with: `curl -X POST https://obmat-backend.up.railway.app/api/onboarding/handshake`
+
+### SSE (real-time events) not working
+- Railway supports Server-Sent Events natively
+- The backend sets `X-Accel-Buffering: no` to prevent proxy buffering
+- If events stop after ~5 minutes, that's Railway's idle timeout — the frontend auto-reconnects via `retry: 5000`

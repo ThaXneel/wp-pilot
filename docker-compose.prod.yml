@@ -41,6 +41,7 @@ services:
       JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET}
       RESEND_API_KEY: ${RESEND_API_KEY}
       FRONTEND_URL: ${FRONTEND_URL}
+      BACKEND_URL: ${BACKEND_URL:-http://backend:5000}
       PROXY_URL: http://proxy:4000
       NODE_ENV: production
     depends_on:
