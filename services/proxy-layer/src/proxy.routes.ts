@@ -29,6 +29,11 @@ function verifyBackendToken(req: Request, res: Response, next: () => void) {
 router.use(verifyBackendToken);
 
 // Products
+router.get('/sites/:siteId/products/count', async (req: Request, res: Response) => {
+  const result = await proxyService.forward(req.params.siteId as string, 'GET', '/products/count');
+  res.status(result.status).json(result.data);
+});
+
 router.get('/sites/:siteId/products', async (req: Request, res: Response) => {
   const result = await proxyService.forward(req.params.siteId as string, 'GET', '/products', req.query);
   res.status(result.status).json(result.data);
@@ -54,23 +59,23 @@ router.delete('/sites/:siteId/products/:productId', async (req: Request, res: Re
   res.status(result.status).json(result.data);
 });
 
-router.get('/sites/:siteId/products/count', async (req: Request, res: Response) => {
-  const result = await proxyService.forward(req.params.siteId as string, 'GET', '/products/count');
-  res.status(result.status).json(result.data);
-});
-
 // Orders
-router.get('/sites/:siteId/orders', async (req: Request, res: Response) => {
-  const result = await proxyService.forward(req.params.siteId as string, 'GET', '/orders', req.query);
-  res.status(result.status).json(result.data);
-});
-
 router.get('/sites/:siteId/orders/count', async (req: Request, res: Response) => {
   const result = await proxyService.forward(req.params.siteId as string, 'GET', '/orders/count');
   res.status(result.status).json(result.data);
 });
 
+router.get('/sites/:siteId/orders', async (req: Request, res: Response) => {
+  const result = await proxyService.forward(req.params.siteId as string, 'GET', '/orders', req.query);
+  res.status(result.status).json(result.data);
+});
+
 // Posts
+router.get('/sites/:siteId/posts/count', async (req: Request, res: Response) => {
+  const result = await proxyService.forward(req.params.siteId as string, 'GET', '/posts/count');
+  res.status(result.status).json(result.data);
+});
+
 router.get('/sites/:siteId/posts', async (req: Request, res: Response) => {
   const result = await proxyService.forward(req.params.siteId as string, 'GET', '/posts', req.query);
   res.status(result.status).json(result.data);
@@ -93,11 +98,6 @@ router.get('/sites/:siteId/posts/:postId', async (req: Request, res: Response) =
 
 router.delete('/sites/:siteId/posts/:postId', async (req: Request, res: Response) => {
   const result = await proxyService.forward(req.params.siteId as string, 'DELETE', `/posts/${req.params.postId}`);
-  res.status(result.status).json(result.data);
-});
-
-router.get('/sites/:siteId/posts/count', async (req: Request, res: Response) => {
-  const result = await proxyService.forward(req.params.siteId as string, 'GET', '/posts/count');
   res.status(result.status).json(result.data);
 });
 

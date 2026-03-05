@@ -12,8 +12,12 @@ function generateAccessToken(payload: { id: string; role: string; clientId?: str
   return jwt.sign(payload, env.JWT_SECRET, { expiresIn: '15m' });
 }
 
-function generateRefreshToken(payload: { id: string }, rememberMe = false): string {
-  return jwt.sign(payload, env.JWT_REFRESH_SECRET, { expiresIn: rememberMe ? '30d' : '7d' });
+function generateRefreshToken(payload: { id: string; rememberMe?: boolean }, rememberMe = false): string {
+  return jwt.sign(
+    { id: payload.id, rememberMe },
+    env.JWT_REFRESH_SECRET,
+    { expiresIn: rememberMe ? '30d' : '7d' },
+  );
 }
 
 export const authService = {
@@ -96,7 +100,10 @@ export const authService = {
 
   async refresh(refreshTokenStr: string) {
     try {
-      const payload = jwt.verify(refreshTokenStr, env.JWT_REFRESH_SECRET) as { id: string };
+      const payload = jwt.verify(refreshTokenStr, env.JWT_REFRESH_SECRET) as {
+        id: string;
+        rememberMe?: boolean;
+      };
 
       const user = await prisma.user.findUnique({
         where: { id: payload.id },
@@ -107,12 +114,16 @@ export const authService = {
         throw new AppError('User not found', 401);
       }
 
+      // Preserve the rememberMe flag from the original token
+      const rememberMe = payload.rememberMe ?? false;
+
       const tokenPayload = { id: user.id, role: user.role, clientId: user.client?.id };
       const accessToken = generateAccessToken(tokenPayload);
-      const newRefreshToken = generateRefreshToken({ id: user.id });
+      const newRefreshToken = generateRefreshToken({ id: user.id }, rememberMe);
 
-      return { accessToken, refreshToken: newRefreshToken };
-    } catch {
+      return { accessToken, refreshToken: newRefreshToken, rememberMe };
+    } catch (err) {
+      if (err instanceof AppError) throw err;
       throw new AppError('Invalid refresh token', 401);
     }
   },

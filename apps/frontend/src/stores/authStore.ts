@@ -21,21 +21,28 @@ interface AuthState {
   setUser: (user: AuthUser) => void;
 }
 
-// Custom storage that delegates to localStorage or sessionStorage based on rememberMe
+/**
+ * Module-level flag tracks which storage is active.
+ * Initialized from existing persisted data, then updated by login/logout.
+ */
+let useLocalStorage = false;
+if (typeof window !== "undefined") {
+  try {
+    const stored = localStorage.getItem("obmat-auth");
+    if (stored) {
+      const parsed = JSON.parse(stored);
+      if (parsed?.state?.rememberMe) {
+        useLocalStorage = true;
+      }
+    }
+  } catch {
+    // ignore parse errors
+  }
+}
+
 const authStorage = createJSONStorage(() => {
   if (typeof window === "undefined") return sessionStorage;
-  // Check if user previously chose "remember me"
-  const stored = localStorage.getItem("obmat-auth");
-  if (stored) {
-    try {
-      const parsed = JSON.parse(stored);
-      if (parsed?.state?.rememberMe) return localStorage;
-    } catch {}
-  }
-  // Check sessionStorage as fallback
-  const sessionStored = sessionStorage.getItem("obmat-auth");
-  if (sessionStored) return sessionStorage;
-  return sessionStorage;
+  return useLocalStorage ? localStorage : sessionStorage;
 });
 
 export const useAuthStore = create<AuthState>()(
@@ -48,7 +55,10 @@ export const useAuthStore = create<AuthState>()(
       rememberMe: false,
 
       login: (user, accessToken, refreshToken, rememberMe = false) => {
-        // Clear the opposite storage when switching modes
+        // Update the module-level flag BEFORE the set() triggers a write
+        useLocalStorage = rememberMe;
+
+        // Clear the opposite storage
         if (rememberMe) {
           sessionStorage.removeItem("obmat-auth");
         } else {
@@ -58,9 +68,10 @@ export const useAuthStore = create<AuthState>()(
       },
 
       logout: () => {
-        // Clear both storages on logout
+        // Clear both storages
         localStorage.removeItem("obmat-auth");
         sessionStorage.removeItem("obmat-auth");
+        useLocalStorage = false;
         set({ user: null, accessToken: null, refreshToken: null, isAuthenticated: false, rememberMe: false });
       },
 

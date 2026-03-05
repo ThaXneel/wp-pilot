@@ -3,6 +3,7 @@
 import { AuthGuard } from "@/components/layout/AuthGuard";
 import { ClientSidebar } from "@/components/layout/ClientSidebar";
 import { Topbar } from "@/components/layout/Topbar";
+import { SitesProvider } from "@/components/providers/SitesProvider";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useState } from "react";
 
@@ -19,15 +20,17 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
     <AuthGuard requiredRole="CLIENT">
       <QueryClientProvider client={queryClient}>
-        <div className="flex h-screen bg-(--color-background)">
-          <ClientSidebar />
-          <div className="flex flex-1 flex-col overflow-hidden">
-            <Topbar />
-            <main className="flex-1 overflow-y-auto p-6">
-              {children}
-            </main>
+        <SitesProvider>
+          <div className="flex h-screen bg-(--color-background)">
+            <ClientSidebar />
+            <div className="flex flex-1 flex-col overflow-hidden">
+              <Topbar />
+              <main className="flex-1 overflow-y-auto p-6">
+                {children}
+              </main>
+            </div>
           </div>
-        </div>
+        </SitesProvider>
       </QueryClientProvider>
     </AuthGuard>
   );

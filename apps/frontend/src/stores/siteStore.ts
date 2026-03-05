@@ -44,6 +44,7 @@ export const useSiteStore = create<SiteState>()(
     {
       name: "obmat-site",
       partialize: (state) => ({
+        sites: state.sites,
         selectedSiteId: state.selectedSiteId,
         sidebarCollapsed: state.sidebarCollapsed,
       }),
