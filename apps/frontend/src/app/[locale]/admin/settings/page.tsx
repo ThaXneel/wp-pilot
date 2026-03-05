@@ -99,7 +99,7 @@ export default function AdminSettingsPage() {
               label={t("fromName")}
               value={fromName}
               onChange={(e) => setFromName(e.target.value)}
-              placeholder="WP Pilot"
+              placeholder="OBMAT"
               required
             />
             <Input

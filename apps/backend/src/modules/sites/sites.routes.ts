@@ -11,3 +11,4 @@ sitesRoutes.post('/heartbeat', sitesController.heartbeat); // No auth — uses a
 sitesRoutes.use(authenticate);
 sitesRoutes.get('/', sitesController.list);
 sitesRoutes.get('/:id', sitesController.get);
+sitesRoutes.delete('/:id', sitesController.delete);

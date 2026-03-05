@@ -15,7 +15,7 @@ export const onboardingController = {
       }
 
       res.setHeader('Content-Type', 'application/zip');
-      res.setHeader('Content-Disposition', 'attachment; filename="wp-pilot-connector.zip"');
+      res.setHeader('Content-Disposition', 'attachment; filename="obmat-connector.zip"');
 
       const archive = archiver('zip', { zlib: { level: 9 } });
 
@@ -25,8 +25,8 @@ export const onboardingController = {
 
       archive.pipe(res);
 
-      // Add the plugin directory contents inside a wp-pilot-connector/ folder in the zip
-      archive.directory(pluginDir, 'wp-pilot-connector');
+      // Add the plugin directory contents inside an obmat-connector/ folder in the zip
+      archive.directory(pluginDir, 'obmat-connector');
 
       await archive.finalize();
     } catch (err) {

@@ -17,6 +17,8 @@ import { postsRoutes } from './modules/posts/posts.routes.js';
 import { dashboardRoutes } from './modules/dashboard/dashboard.routes.js';
 import { activityRoutes } from './modules/activity/activity.routes.js';
 import { adminRoutes } from './modules/admin/admin.routes.js';
+import { webhooksRoutes } from './modules/webhooks/webhooks.routes.js';
+import { eventsRoutes } from './modules/events/events.routes.js';
 
 const app = express();
 
@@ -55,12 +57,14 @@ app.use('/api/posts', postsRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/activity', activityRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/webhooks', webhooksRoutes);
+app.use('/api/events', eventsRoutes);
 
 // Global error handler
 app.use(errorHandler);
 
 app.listen(env.PORT, () => {
-  logger.info(`🚀 WP Pilot API running on port ${env.PORT} [${env.NODE_ENV}]`);
+  logger.info(`🚀 OBMAT API running on port ${env.PORT} [${env.NODE_ENV}]`);
 });
 
 export default app;

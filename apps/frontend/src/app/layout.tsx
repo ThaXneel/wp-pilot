@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "WP Pilot",
+  title: "OBMAT",
   description: "Manage your WordPress business without wp-admin",
 };
 

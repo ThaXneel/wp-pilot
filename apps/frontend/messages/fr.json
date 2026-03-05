@@ -1,6 +1,6 @@
 {
   "common": {
-    "appName": "WP Pilot",
+    "appName": "OBMAT",
     "loading": "Chargement...",
     "save": "Enregistrer",
     "cancel": "Annuler",
@@ -81,7 +81,16 @@
     "connectedSites": "Sites connectés",
     "noSites": "Aucun site connecté.",
     "connectFirst": "Connectez votre premier site WordPress",
-    "addSite": "Ajouter un site"
+    "addSite": "Ajouter un site",
+    "removeSite": "Supprimer le site",
+    "removeSiteTitle": "Supprimer le site connecté",
+    "removeSiteConfirm": "Êtes-vous sûr de vouloir supprimer {name} ? Cela déconnectera le site d'OBMAT. Le plugin WordPress restera installé mais inactif.",
+    "cancel": "Annuler",
+    "never": "Jamais synchronisé",
+    "justNow": "À l'instant",
+    "ago": "il y a",
+    "errors": "erreurs",
+    "lastSync": "Dernière sync"
   },
   "onboarding": {
     "title": "Connectez votre site WordPress",
@@ -93,7 +102,7 @@
     },
     "accountDesc": "Votre compte est prêt. Connectons votre site WordPress.",
     "accountReady": "Votre compte a été créé avec succès.",
-    "installDesc": "Téléchargez et installez le plugin WP Pilot Connector sur votre site WordPress.",
+    "installDesc": "Téléchargez et installez le plugin OBMAT Connector sur votre site WordPress.",
     "installStep1": "Téléchargez le fichier ZIP du plugin ci-dessous.",
     "installStep2": "Allez dans WP Admin → Extensions → Ajouter → Téléverser une extension.",
     "installStep3": "Activez le plugin.",
@@ -102,9 +111,9 @@
     "generateToken": "Générer un jeton",
     "copy": "Copier",
     "copied": "Copié !",
-    "pasteToken": "Collez ce jeton dans WP Admin → Réglages → WP Pilot.",
+    "pasteToken": "Collez ce jeton dans WP Admin → Réglages → OBMAT.",
     "verifyConnection": "Vérifier la connexion",
-    "verifyFailed": "Connexion non détectée. Assurez-vous d'avoir enregistré le jeton et l'URL SaaS dans WP Admin → Réglages → WP Pilot, puis réessayez.",
+    "verifyFailed": "Connexion non détectée. Assurez-vous d'avoir enregistré le jeton et l'URL SaaS dans WP Admin → Réglages → OBMAT, puis réessayez.",
     "verifyHint": "Après avoir enregistré le jeton dans les paramètres du plugin WordPress, cliquez sur Vérifier pour contrôler la connexion.",
     "readyTitle": "Vous êtes prêt !",
     "readyDesc": "Votre site WordPress est connecté. Vous pouvez maintenant gérer vos produits, commandes et articles.",
@@ -319,8 +328,8 @@
     "settingsSaved": "Paramètres enregistrés avec succès."
   },
   "landing": {
-    "heroTitle": "Gérez votre entreprise WordPress sans wp-admin",
-    "heroDesc": "WP Pilot vous offre un tableau de bord moderne pour gérer vos produits, commandes et articles — sans toucher à l'admin WordPress.",
+    "heroTitle": "Gérez votre entreprise en ligne depuis un seul tableau de bord",
+    "heroDesc": "OBMAT — Online Business Manager Tool. Un tableau de bord moderne pour gérer vos produits, commandes et articles — sans toucher à l'admin WordPress.",
     "getStarted": "Commencer",
     "login": "Se connecter",
     "featuresTitle": "Tout ce dont vous avez besoin",
@@ -333,7 +342,7 @@
     "feature4Title": "Sécurisé",
     "feature4Desc": "Authentification par jeton avec connexions chiffrées.",
     "ctaTitle": "Prêt à simplifier votre flux de travail ?",
-    "ctaDesc": "Rejoignez WP Pilot et commencez à gérer vos sites WordPress de manière moderne.",
+    "ctaDesc": "Rejoignez OBMAT et commencez à gérer vos sites WordPress de manière moderne.",
     "allRightsReserved": "Tous droits réservés."
   },
   "errors": {

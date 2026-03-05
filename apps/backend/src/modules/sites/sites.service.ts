@@ -1,5 +1,6 @@
 import { prisma } from '../../config/database.js';
 import { AppError } from '../../middleware/errorHandler.js';
+import { logger } from '../../config/logger.js';
 
 export const sitesService = {
   async getSiteConfig(siteId: string) {
@@ -52,5 +53,33 @@ export const sitesService = {
     });
 
     return updated;
+  },
+
+  async deleteSite(siteId: string, clientId?: string) {
+    const site = await prisma.clientSite.findUnique({ where: { id: siteId } });
+
+    if (!site) {
+      throw new AppError('Site not found', 404);
+    }
+
+    if (clientId && site.clientId !== clientId) {
+      throw new AppError('Site not found', 404);
+    }
+
+    // Delete site (cascading will remove related activities and globalEvents)
+    await prisma.clientSite.delete({ where: { id: siteId } });
+
+    // Log the deletion as an activity
+    await prisma.activity.create({
+      data: {
+        clientId: site.clientId,
+        action: 'site.deleted',
+        details: { siteName: site.name, wpUrl: site.wpUrl },
+      },
+    });
+
+    logger.info(`Site deleted: ${site.name} (${site.id}) by client ${site.clientId}`);
+
+    return { id: siteId, name: site.name };
   },
 };

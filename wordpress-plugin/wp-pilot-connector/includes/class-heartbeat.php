@@ -1,16 +1,16 @@
 <?php
 if (!defined('ABSPATH')) exit;
 
-class WP_Pilot_Heartbeat {
+class OBMAT_Heartbeat {
 
-    const CRON_HOOK = 'wp_pilot_heartbeat_event';
+    const CRON_HOOK = 'obmat_heartbeat_event';
 
     public function init() {
         add_action(self::CRON_HOOK, [$this, 'send_heartbeat']);
 
         // Schedule cron if not already scheduled
         if (!wp_next_scheduled(self::CRON_HOOK)) {
-            wp_schedule_event(time(), 'wp_pilot_5min', self::CRON_HOOK);
+            wp_schedule_event(time(), 'obmat_5min', self::CRON_HOOK);
         }
 
         // Register custom 5-min interval
@@ -18,17 +18,17 @@ class WP_Pilot_Heartbeat {
     }
 
     public function add_cron_interval($schedules) {
-        $schedules['wp_pilot_5min'] = [
+        $schedules['obmat_5min'] = [
             'interval' => 300,
-            'display' => 'Every 5 Minutes (WP Pilot)',
+            'display' => 'Every 5 Minutes (OBMAT)',
         ];
         return $schedules;
     }
 
     public function send_heartbeat() {
-        $saas_url = defined('WP_PILOT_API_URL') ? WP_PILOT_API_URL : get_option('wp_pilot_saas_url', '');
-        $api_token = get_option('wp_pilot_api_token', '');
-        $site_id = get_option('wp_pilot_site_id', '');
+        $saas_url = defined('OBMAT_API_URL') ? OBMAT_API_URL : get_option('obmat_saas_url', '');
+        $api_token = get_option('obmat_api_token', '');
+        $site_id = get_option('obmat_site_id', '');
 
         if (empty($saas_url) || empty($api_token) || empty($site_id)) {
             return;

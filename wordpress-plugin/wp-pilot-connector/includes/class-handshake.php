@@ -1,7 +1,7 @@
 <?php
 if (!defined('ABSPATH')) exit;
 
-class WP_Pilot_Handshake {
+class OBMAT_Handshake {
 
     /**
      * Handle initial handshake verification from SaaS proxy.
@@ -16,7 +16,7 @@ class WP_Pilot_Handshake {
             'wpUrl' => $site_url,
             'wpVersion' => $wp_version,
             'woocommerceActive' => class_exists('WooCommerce'),
-            'pluginVersion' => WP_PILOT_VERSION,
+            'pluginVersion' => OBMAT_VERSION,
         ]);
     }
 }

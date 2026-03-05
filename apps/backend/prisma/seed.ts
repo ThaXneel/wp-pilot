@@ -9,10 +9,10 @@ async function main() {
   // Create owner account
   const ownerPassword = await bcrypt.hash('owner123!', 12);
   const owner = await prisma.user.upsert({
-    where: { email: 'owner@wppilot.com' },
+    where: { email: 'owner@obmat.com' },
     update: {},
     create: {
-      email: 'owner@wppilot.com',
+      email: 'owner@obmat.com',
       passwordHash: ownerPassword,
       role: 'OWNER',
       languagePreference: 'en',

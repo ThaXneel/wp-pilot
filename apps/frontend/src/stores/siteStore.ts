@@ -42,7 +42,7 @@ export const useSiteStore = create<SiteState>()(
       setSidebarCollapsed: (collapsed) => set({ sidebarCollapsed: collapsed }),
     }),
     {
-      name: "wp-pilot-site",
+      name: "obmat-site",
       partialize: (state) => ({
         selectedSiteId: state.selectedSiteId,
         sidebarCollapsed: state.sidebarCollapsed,

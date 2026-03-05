@@ -20,7 +20,7 @@ export default function LandingPage() {
       {/* Nav */}
       <header className="border-b border-(--color-border)">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
-          <span className="text-xl font-bold text-(--color-foreground)">WP Pilot</span>
+          <span className="text-xl font-bold text-(--color-foreground)">OBMAT</span>
           <div className="flex items-center gap-3">
             <Link href="/login">
               <Button variant="ghost">{t("login")}</Button>
@@ -61,7 +61,7 @@ export default function LandingPage() {
           <div className="mt-12 grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4">
             {features.map((feature, idx) => (
               <div key={idx} className="rounded-xl bg-(--color-card) p-6 border border-(--color-border)">
-                <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-(--color-primary)/10">
+                <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10">
                   <feature.icon className="h-6 w-6 text-(--color-primary)" />
                 </div>
                 <h3 className="mt-4 text-lg font-semibold text-(--color-foreground)">{feature.title}</h3>
@@ -88,7 +88,7 @@ export default function LandingPage() {
       {/* Footer */}
       <footer className="border-t border-(--color-border) py-8">
         <div className="mx-auto max-w-6xl px-6 text-center text-sm text-(--color-muted-foreground)">
-          &copy; {new Date().getFullYear()} WP Pilot. {t("allRightsReserved")}
+                  &copy; {new Date().getFullYear()} OBMAT. {t("allRightsReserved")}
         </div>
       </footer>
     </div>

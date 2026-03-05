@@ -1,7 +1,7 @@
 <?php
 if (!defined('ABSPATH')) exit;
 
-class WP_Pilot_Posts {
+class OBMAT_Posts {
 
     public function list_posts($request) {
         $args = [

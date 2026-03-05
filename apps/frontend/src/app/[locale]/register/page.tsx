@@ -70,7 +70,7 @@ export default function RegisterPage() {
     <div className="flex min-h-screen items-center justify-center bg-(--color-background) px-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
-          <span className="text-2xl font-bold text-(--color-foreground)">WP Pilot</span>
+          <span className="text-2xl font-bold text-(--color-foreground)">OBMAT</span>
           <CardTitle className="mt-2">{t("registerTitle")}</CardTitle>
         </CardHeader>
         <CardContent>

@@ -1,7 +1,7 @@
 <?php
 if (!defined('ABSPATH')) exit;
 
-class WP_Pilot_Products {
+class OBMAT_Products {
 
     public function list_products($request) {
         if (!class_exists('WooCommerce')) {

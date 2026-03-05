@@ -1,30 +1,31 @@
 <?php
 /**
- * Plugin Name: WP Pilot Connector
- * Plugin URI: https://wppilot.com
- * Description: Connects your WordPress site to the WP Pilot SaaS platform for remote management.
+ * Plugin Name: OBMAT
+ * Plugin URI: https://obmat.com
+ * Description: OBMAT — Online Business Manager Tool Connector. Real-time sync between WordPress/WooCommerce and the OBMAT dashboard.
  * Version: 1.0.0
- * Author: WP Pilot
- * Author URI: https://wppilot.com
+ * Author: NEXNEEL
+ * Author URI: https://nexneel.com
  * License: GPL v2 or later
- * Text Domain: wp-pilot-connector
+ * Text Domain: obmat-connector
  */
 
 if (!defined('ABSPATH')) exit;
 
-define('WP_PILOT_VERSION', '1.0.0');
-define('WP_PILOT_PLUGIN_DIR', plugin_dir_path(__FILE__));
+define('OBMAT_VERSION', '1.0.0');
+define('OBMAT_PLUGIN_DIR', plugin_dir_path(__FILE__));
 
 // Includes
-require_once WP_PILOT_PLUGIN_DIR . 'includes/class-auth.php';
-require_once WP_PILOT_PLUGIN_DIR . 'includes/class-products.php';
-require_once WP_PILOT_PLUGIN_DIR . 'includes/class-orders.php';
-require_once WP_PILOT_PLUGIN_DIR . 'includes/class-posts.php';
-require_once WP_PILOT_PLUGIN_DIR . 'includes/class-health.php';
-require_once WP_PILOT_PLUGIN_DIR . 'includes/class-heartbeat.php';
-require_once WP_PILOT_PLUGIN_DIR . 'includes/class-handshake.php';
+require_once OBMAT_PLUGIN_DIR . 'includes/class-auth.php';
+require_once OBMAT_PLUGIN_DIR . 'includes/class-products.php';
+require_once OBMAT_PLUGIN_DIR . 'includes/class-orders.php';
+require_once OBMAT_PLUGIN_DIR . 'includes/class-posts.php';
+require_once OBMAT_PLUGIN_DIR . 'includes/class-health.php';
+require_once OBMAT_PLUGIN_DIR . 'includes/class-heartbeat.php';
+require_once OBMAT_PLUGIN_DIR . 'includes/class-handshake.php';
+require_once OBMAT_PLUGIN_DIR . 'includes/class-webhooks.php';
 
-class WP_Pilot_Connector {
+class OBMAT_Connector {
 
     public function __construct() {
         add_action('rest_api_init', [$this, 'register_routes']);
@@ -32,11 +33,15 @@ class WP_Pilot_Connector {
         add_action('admin_init', [$this, 'register_settings']);
 
         // Auto-handshake when settings are updated
-        add_action('update_option_wp_pilot_api_token', [$this, 'try_handshake'], 10, 0);
+        add_action('update_option_obmat_api_token', [$this, 'try_handshake'], 10, 0);
 
         // Initialize heartbeat cron
-        $heartbeat = new WP_Pilot_Heartbeat();
+        $heartbeat = new OBMAT_Heartbeat();
         $heartbeat->init();
+
+        // Initialize webhook event listeners for real-time sync
+        $webhooks = new OBMAT_Webhooks();
+        $webhooks->init();
     }
 
     /**
@@ -49,17 +54,17 @@ class WP_Pilot_Connector {
         if ($already_ran) return;
         $already_ran = true;
 
-        $token = get_option('wp_pilot_api_token', '');
+        $token = get_option('obmat_api_token', '');
 
         // Backend URL from wp-config.php constant, fallback to option (legacy)
-        $saas_url = defined('WP_PILOT_API_URL') ? WP_PILOT_API_URL : get_option('wp_pilot_saas_url', '');
+        $saas_url = defined('OBMAT_API_URL') ? OBMAT_API_URL : get_option('obmat_saas_url', '');
 
         if (empty($token) || empty($saas_url)) {
             return;
         }
 
         // Don't handshake again if we already have a site ID
-        $site_id = get_option('wp_pilot_site_id', '');
+        $site_id = get_option('obmat_site_id', '');
         if (!empty($site_id)) {
             return;
         }
@@ -82,8 +87,8 @@ class WP_Pilot_Connector {
         ]);
 
         if (is_wp_error($response)) {
-            add_settings_error('wp_pilot_settings', 'handshake_failed',
-                'WP Pilot handshake failed: ' . $response->get_error_message(), 'error');
+            add_settings_error('obmat_settings', 'handshake_failed',
+                'OBMAT handshake failed: ' . $response->get_error_message(), 'error');
             return;
         }
 
@@ -93,29 +98,29 @@ class WP_Pilot_Connector {
         if ($status_code === 200 && !empty($body['success']) && !empty($body['data'])) {
             // Store the permanent API token and site ID returned by the SaaS
             if (!empty($body['data']['apiToken'])) {
-                update_option('wp_pilot_api_token', $body['data']['apiToken']);
+                update_option('obmat_api_token', $body['data']['apiToken']);
             }
             if (!empty($body['data']['siteId'])) {
-                update_option('wp_pilot_site_id', $body['data']['siteId']);
+                update_option('obmat_site_id', $body['data']['siteId']);
             }
-            add_settings_error('wp_pilot_settings', 'handshake_success',
-                'Successfully connected to WP Pilot!', 'updated');
+            add_settings_error('obmat_settings', 'handshake_success',
+                'Successfully connected to OBMAT!', 'updated');
         } else {
             $error_msg = !empty($body['error']) ? $body['error'] : 'Unknown error (HTTP ' . $status_code . ')';
-            add_settings_error('wp_pilot_settings', 'handshake_failed',
-                'WP Pilot handshake failed: ' . $error_msg, 'error');
+            add_settings_error('obmat_settings', 'handshake_failed',
+                'OBMAT handshake failed: ' . $error_msg, 'error');
         }
     }
 
     public function register_routes() {
-        $auth = new WP_Pilot_Auth();
-        $products = new WP_Pilot_Products();
-        $orders = new WP_Pilot_Orders();
-        $posts = new WP_Pilot_Posts();
-        $health = new WP_Pilot_Health();
-        $handshake = new WP_Pilot_Handshake();
+        $auth = new OBMAT_Auth();
+        $products = new OBMAT_Products();
+        $orders = new OBMAT_Orders();
+        $posts = new OBMAT_Posts();
+        $health = new OBMAT_Health();
+        $handshake = new OBMAT_Handshake();
 
-        $namespace = 'saas-connector/v1';
+        $namespace = 'obmat-connector/v1';
 
         // Handshake
         register_rest_route($namespace, '/handshake', [
@@ -210,64 +215,65 @@ class WP_Pilot_Connector {
 
     public function add_settings_page() {
         add_options_page(
-            'WP Pilot Connector',
-            'WP Pilot',
+            'OBMAT Connector',
+            'OBMAT',
             'manage_options',
-            'wp-pilot-connector',
+            'obmat-connector',
             [$this, 'render_settings_page']
         );
     }
 
     public function register_settings() {
-        register_setting('wp_pilot_settings', 'wp_pilot_api_token');
-        register_setting('wp_pilot_settings', 'wp_pilot_site_id');
+        register_setting('obmat_settings', 'obmat_api_token');
+        register_setting('obmat_settings', 'obmat_site_id');
     }
 
     public function render_settings_page() {
-        $token = get_option('wp_pilot_api_token', '');
-        $site_id = get_option('wp_pilot_site_id', '');
+        $token = get_option('obmat_api_token', '');
+        $site_id = get_option('obmat_site_id', '');
         $is_connected = !empty($site_id);
-        $saas_url = defined('WP_PILOT_API_URL') ? WP_PILOT_API_URL : get_option('wp_pilot_saas_url', '');
+        $saas_url = defined('OBMAT_API_URL') ? OBMAT_API_URL : get_option('obmat_saas_url', '');
 
         // Show settings errors/notices from handshake
-        settings_errors('wp_pilot_settings');
+        settings_errors('obmat_settings');
         ?>
         <div class="wrap">
-            <h1>WP Pilot Connector</h1>
+            <h1>OBMAT — Online Business Manager Tool</h1>
+            <p class="description">Developed by <strong>NEXNEEL</strong></p>
 
             <?php if (empty($saas_url)): ?>
                 <div class="notice notice-warning">
-                    <p><strong>⚠️ Backend URL not configured.</strong> Add <code>define('WP_PILOT_API_URL', 'https://api.wppilot.com');</code> to your <code>wp-config.php</code> file.</p>
+                    <p><strong>⚠️ Backend URL not configured.</strong> Add <code>define('OBMAT_API_URL', 'https://api.obmat.com');</code> to your <code>wp-config.php</code> file.</p>
                 </div>
             <?php endif; ?>
 
             <?php if ($is_connected): ?>
                 <div class="notice notice-success">
-                    <p><strong>✅ Connected to WP Pilot.</strong> Site ID: <code><?php echo esc_html($site_id); ?></code></p>
+                    <p><strong>✅ Connected to OBMAT.</strong> Site ID: <code><?php echo esc_html($site_id); ?></code></p>
                 </div>
             <?php endif; ?>
 
             <form method="post" action="options.php">
-                <?php settings_fields('wp_pilot_settings'); ?>
+                <?php settings_fields('obmat_settings'); ?>
                 <table class="form-table">
                     <tr>
                         <th>API Token</th>
                         <td>
-                            <input type="text" name="wp_pilot_api_token" value="<?php echo esc_attr($token); ?>" class="regular-text" />
-                            <p class="description"><?php echo $is_connected ? 'Permanent API token (auto-assigned after handshake).' : 'Paste the connect token from your WP Pilot dashboard.'; ?></p>
+                            <input type="text" name="obmat_api_token" value="<?php echo esc_attr($token); ?>" class="regular-text" />
+                            <p class="description"><?php echo $is_connected ? 'Permanent API token (auto-assigned after handshake).' : 'Paste the connect token from your OBMAT dashboard.'; ?></p>
                         </td>
                     </tr>
                     <tr>
                         <th>Backend URL</th>
                         <td>
                             <code><?php echo esc_html(!empty($saas_url) ? $saas_url : '— not set —'); ?></code>
-                            <p class="description">Configured via <code>WP_PILOT_API_URL</code> constant in <code>wp-config.php</code>.</p>
+                            <p class="description">Configured via <code>OBMAT_API_URL</code> constant in <code>wp-config.php</code>.</p>
                         </td>
                     </tr>
                     <tr>
                         <th>Site ID</th>
                         <td>
-                            <input type="text" name="wp_pilot_site_id" value="<?php echo esc_attr($site_id); ?>" class="regular-text" readonly />
+                            <input type="text" name="obmat_site_id" value="<?php echo esc_attr($site_id); ?>" class="regular-text" readonly />
                             <p class="description">Auto-assigned after successful connection.</p>
                         </td>
                     </tr>
@@ -284,4 +290,4 @@ class WP_Pilot_Connector {
     }
 }
 
-new WP_Pilot_Connector();
+new OBMAT_Connector();

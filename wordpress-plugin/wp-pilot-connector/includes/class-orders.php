@@ -1,7 +1,7 @@
 <?php
 if (!defined('ABSPATH')) exit;
 
-class WP_Pilot_Orders {
+class OBMAT_Orders {
 
     public function list_orders($request) {
         if (!class_exists('WooCommerce')) {

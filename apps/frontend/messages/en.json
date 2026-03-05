@@ -1,6 +1,6 @@
 {
   "common": {
-    "appName": "WP Pilot",
+    "appName": "OBMAT",
     "loading": "Loading...",
     "save": "Save",
     "cancel": "Cancel",
@@ -81,7 +81,16 @@
     "connectedSites": "Connected Sites",
     "noSites": "No sites connected yet.",
     "connectFirst": "Connect your first WordPress site",
-    "addSite": "Add Site"
+    "addSite": "Add Site",
+    "removeSite": "Remove Site",
+    "removeSiteTitle": "Remove Connected Site",
+    "removeSiteConfirm": "Are you sure you want to remove {name}? This will disconnect the site from OBMAT. The WordPress plugin will remain installed but inactive.",
+    "cancel": "Cancel",
+    "never": "Never synced",
+    "justNow": "Just now",
+    "ago": "ago",
+    "errors": "errors",
+    "lastSync": "Last sync"
   },
   "onboarding": {
     "title": "Connect your WordPress site",
@@ -93,7 +102,7 @@
     },
     "accountDesc": "Your account is ready. Let's connect your WordPress site.",
     "accountReady": "Your account has been created successfully.",
-    "installDesc": "Download and install the WP Pilot Connector plugin on your WordPress site.",
+    "installDesc": "Download and install the OBMAT Connector plugin on your WordPress site.",
     "installStep1": "Download the plugin ZIP file below.",
     "installStep2": "Go to WP Admin → Plugins → Add New → Upload Plugin.",
     "installStep3": "Activate the plugin.",
@@ -102,9 +111,9 @@
     "generateToken": "Generate Token",
     "copy": "Copy",
     "copied": "Copied!",
-    "pasteToken": "Paste this token in WP Admin → Settings → WP Pilot.",
+    "pasteToken": "Paste this token in WP Admin → Settings → OBMAT.",
     "verifyConnection": "Verify Connection",
-    "verifyFailed": "Connection not detected yet. Make sure you saved the token and SaaS URL in WP Admin → Settings → WP Pilot, then try again.",
+    "verifyFailed": "Connection not detected yet. Make sure you saved the token and SaaS URL in WP Admin → Settings → OBMAT, then try again.",
     "verifyHint": "After saving the token in your WordPress plugin settings, click Verify to check the connection.",
     "readyTitle": "You're all set!",
     "readyDesc": "Your WordPress site is connected. You can now manage products, orders, and posts.",
@@ -319,8 +328,8 @@
     "settingsSaved": "Settings saved successfully."
   },
   "landing": {
-    "heroTitle": "Manage your WordPress business without wp-admin",
-    "heroDesc": "WP Pilot gives you a clean, modern dashboard to manage your products, orders, and blog posts — all without touching WordPress admin.",
+    "heroTitle": "Manage your online business from one dashboard",
+    "heroDesc": "OBMAT — Online Business Manager Tool. A clean, modern dashboard to manage your products, orders, and blog posts — all without touching WordPress admin.",
     "getStarted": "Get Started",
     "login": "Log In",
     "featuresTitle": "Everything you need",
@@ -333,7 +342,7 @@
     "feature4Title": "Secure",
     "feature4Desc": "Token-based authentication with encrypted connections.",
     "ctaTitle": "Ready to simplify your workflow?",
-    "ctaDesc": "Join WP Pilot and start managing your WordPress sites the modern way.",
+    "ctaDesc": "Join OBMAT and start managing your WordPress sites the modern way.",
     "allRightsReserved": "All rights reserved."
   },
   "errors": {

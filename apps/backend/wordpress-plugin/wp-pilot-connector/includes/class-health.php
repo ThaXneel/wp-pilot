@@ -1,7 +1,7 @@
 <?php
 if (!defined('ABSPATH')) exit;
 
-class WP_Pilot_Health {
+class OBMAT_Health {
 
     public function get_report() {
         global $wp_version;

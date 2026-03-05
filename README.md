@@ -1,6 +1,8 @@
-# WP Pilot — SaaS Platform
+# OBMAT — Online Business Manager Tool
 
 Manage your WordPress sites without wp-admin. Products, orders, blog posts — all from one dashboard.
+
+**Built by NEXNEEL**
 
 ## Tech Stack
 
@@ -24,9 +26,9 @@ ProjectNextTool/
 │   │   ├── frontend/     → Next.js 16 App Router (port 3000)
 │   │   └── backend/      → Express 5 API (port 5000)
 │   ├── services/
-│   │   └── proxy-layer/  → WP Proxy Layer (port 4000)
-│   ├── shared/           → Shared TypeScript types (@wppilot/shared)
-│   ├── wordpress-plugin/ → PHP connector plugin
+│   │   └── proxy-layer/  → OBMAT Proxy Layer (port 4000)
+│   ├── shared/           → Shared TypeScript types (@obmat/shared)
+│   ├── wordpress-plugin/ → OBMAT Connector PHP plugin
 │   ├── docs/             → Architecture, PRD, decisions, roadmap
 │   ├── audit/            → Codebase audit & remaining TODO
 │   └── docker-compose.yml
@@ -62,7 +64,7 @@ docker compose up -d
 ```
 
 This starts:
-- **PostgreSQL** on `localhost:5432` (user: `wppilot`, password: `wppilot_dev`, database: `wppilot`)
+- **PostgreSQL** on `localhost:5432` (user: `obmat`, password: `obmat_dev`, database: `obmat`)
 - **Redis** on `localhost:6379`
 
 Verify containers are running:
@@ -71,7 +73,7 @@ Verify containers are running:
 docker compose ps
 ```
 
-You should see both `wppilot-postgres` and `wppilot-redis` with status "healthy".
+You should see both `obmat-postgres` and `obmat-redis` with status "healthy".
 
 ### Step 3 — Install Dependencies
 
@@ -95,7 +97,7 @@ Edit `.env` with your values:
 
 ```dotenv
 # Database (matches docker-compose.yml defaults — no change needed for local dev)
-DATABASE_URL="postgresql://wppilot:wppilot_dev@localhost:5432/wppilot?schema=public"
+DATABASE_URL="postgresql://obmat:obmat_dev@localhost:5432/obmat?schema=public"
 
 # Redis (no change needed for local dev)
 REDIS_URL="redis://localhost:6379"
@@ -176,7 +178,7 @@ npm run dev:proxy       # Proxy only
 
 | Role | Email | Password |
 |------|-------|----------|
-| Owner | owner@wppilot.com | owner123! |
+| Owner | owner@obmat.com | owner123! |
 | Client | client1@example.com | client123! |
 | Client | client2@example.com | client123! |
 
@@ -262,15 +264,15 @@ npm run db:studio        # Open Prisma Studio GUI
 
 ### For End Users
 
-1. Download the `wp-pilot-connector` plugin from `wordpress-plugin/wp-pilot-connector/`
+1. Download the `obmat-connector` plugin from `wordpress-plugin/wp-pilot-connector/`
 2. Upload and activate it in your WordPress site (WP Admin → Plugins → Add New → Upload)
-3. Go to WP Admin → Settings → WP Pilot
-4. In the WP Pilot SaaS dashboard, go through the Onboarding wizard:
+3. Go to WP Admin → Settings → OBMAT
+4. In the OBMAT dashboard, go through the Onboarding wizard:
    - Step 1: Confirm your account
    - Step 2: Install the plugin on your WP site
    - Step 3: Paste the connection token into the plugin settings
    - Step 4: Verify the connection
-5. Once connected, manage products, orders, and posts from the SaaS dashboard
+5. Once connected, manage products, orders, and posts from the OBMAT dashboard
 
 ### Plugin Features
 - Products CRUD (via WooCommerce API)
@@ -278,6 +280,7 @@ npm run db:studio        # Open Prisma Studio GUI
 - Posts CRUD (via WP_Query / wp_insert_post)
 - Health monitoring (PHP, WP, theme, plugins, SSL)
 - Heartbeat (WP-Cron every 5 minutes → reports status to backend)
+- **Real-time webhooks** — Pushes order/product/post events to OBMAT dashboard via SSE
 
 ---
 
@@ -289,9 +292,9 @@ npm run db:studio        # Open Prisma Studio GUI
 cd saas-platform
 
 # Set production environment variables
-export POSTGRES_USER=wppilot
+export POSTGRES_USER=obmat
 export POSTGRES_PASSWORD=<strong-password>
-export POSTGRES_DB=wppilot
+export POSTGRES_DB=obmat
 export JWT_SECRET=<random-32-char-string>
 export JWT_REFRESH_SECRET=<random-32-char-string>
 export RESEND_API_KEY=re_<your-key>

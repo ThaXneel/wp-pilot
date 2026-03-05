@@ -1,7 +1,7 @@
 <?php
 if (!defined('ABSPATH')) exit;
 
-class WP_Pilot_Auth {
+class OBMAT_Auth {
 
     /**
      * Validate Bearer token on incoming requests.
@@ -14,7 +14,7 @@ class WP_Pilot_Auth {
         }
 
         $token = substr($auth_header, 7);
-        $stored_token = get_option('wp_pilot_api_token', '');
+        $stored_token = get_option('obmat_api_token', '');
 
         if (empty($stored_token) || !hash_equals($stored_token, $token)) {
             return new WP_Error('rest_forbidden', 'Invalid API token.', ['status' => 401]);

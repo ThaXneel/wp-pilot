@@ -44,4 +44,14 @@ export const sitesController = {
       next(err);
     }
   },
+
+  async delete(req: Request, res: Response, next: NextFunction) {
+    try {
+      const clientId = req.user?.role === 'CLIENT' ? req.user.clientId : undefined;
+      const result = await sitesService.deleteSite(req.params.id as string, clientId);
+      res.json({ success: true, data: result });
+    } catch (err) {
+      next(err);
+    }
+  },
 };

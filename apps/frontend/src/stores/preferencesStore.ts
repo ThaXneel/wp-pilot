@@ -17,7 +17,7 @@ export const usePreferencesStore = create<PreferencesState>()(
       setTheme: (theme) => set({ theme }),
     }),
     {
-      name: "wp-pilot-preferences",
+      name: "obmat-preferences",
     }
   )
 );

@@ -45,7 +45,7 @@ export class ProxyService {
       }
 
       // Build the request URL
-      const url = new URL(`/wp-json/saas-connector/v1${path}`, site.wpUrl);
+      const url = new URL(`/wp-json/obmat-connector/v1${path}`, site.wpUrl);
       if (query) {
         Object.entries(query).forEach(([key, value]) => {
           url.searchParams.set(key, String(value));
@@ -70,7 +70,7 @@ export class ProxyService {
         console.error(`[Proxy] Non-JSON response from site ${siteId}: status=${response.status}, body=${text.slice(0, 200)}`);
         return {
           status: 502,
-          data: { error: 'WordPress site returned a non-JSON response. Ensure the WP Pilot Connector plugin is active and permalinks are configured.' },
+          data: { error: 'WordPress site returned a non-JSON response. Ensure the OBMAT Connector plugin is active and permalinks are configured.' },
         };
       }
 

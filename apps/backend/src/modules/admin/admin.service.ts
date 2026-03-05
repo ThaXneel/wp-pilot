@@ -148,8 +148,8 @@ export const adminService = {
     const fromName = await prisma.systemSettings.findUnique({ where: { key: 'email_from_name' } });
 
     return {
-      fromEmail: fromEmail?.value ?? 'noreply@wppilot.com',
-      fromName: fromName?.value ?? 'WP Pilot',
+      fromEmail: fromEmail?.value ?? 'noreply@obmat.com',
+      fromName: fromName?.value ?? 'OBMAT',
     };
   },
 

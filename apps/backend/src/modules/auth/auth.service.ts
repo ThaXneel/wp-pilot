@@ -142,8 +142,8 @@ export const authService = {
         // Get configurable email settings from DB
         const fromEmailSetting = await prisma.systemSettings.findUnique({ where: { key: 'email_from_address' } });
         const fromNameSetting = await prisma.systemSettings.findUnique({ where: { key: 'email_from_name' } });
-        const fromEmail = fromEmailSetting?.value ?? 'noreply@wppilot.com';
-        const fromName = fromNameSetting?.value ?? 'WP Pilot';
+        const fromEmail = fromEmailSetting?.value ?? 'noreply@obmat.com';
+        const fromName = fromNameSetting?.value ?? 'OBMAT';
 
         await resend.emails.send({
           from: `${fromName} <${fromEmail}>`,

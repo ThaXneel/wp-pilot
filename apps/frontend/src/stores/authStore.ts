@@ -25,7 +25,7 @@ interface AuthState {
 const authStorage = createJSONStorage<AuthState>(() => {
   if (typeof window === "undefined") return sessionStorage;
   // Check if user previously chose "remember me"
-  const stored = localStorage.getItem("wp-pilot-auth");
+  const stored = localStorage.getItem("obmat-auth");
   if (stored) {
     try {
       const parsed = JSON.parse(stored);
@@ -33,7 +33,7 @@ const authStorage = createJSONStorage<AuthState>(() => {
     } catch {}
   }
   // Check sessionStorage as fallback
-  const sessionStored = sessionStorage.getItem("wp-pilot-auth");
+  const sessionStored = sessionStorage.getItem("obmat-auth");
   if (sessionStored) return sessionStorage;
   return sessionStorage;
 });
@@ -50,17 +50,17 @@ export const useAuthStore = create<AuthState>()(
       login: (user, accessToken, refreshToken, rememberMe = false) => {
         // Clear the opposite storage when switching modes
         if (rememberMe) {
-          sessionStorage.removeItem("wp-pilot-auth");
+          sessionStorage.removeItem("obmat-auth");
         } else {
-          localStorage.removeItem("wp-pilot-auth");
+          localStorage.removeItem("obmat-auth");
         }
         set({ user, accessToken, refreshToken, isAuthenticated: true, rememberMe });
       },
 
       logout: () => {
         // Clear both storages on logout
-        localStorage.removeItem("wp-pilot-auth");
-        sessionStorage.removeItem("wp-pilot-auth");
+        localStorage.removeItem("obmat-auth");
+        sessionStorage.removeItem("obmat-auth");
         set({ user: null, accessToken: null, refreshToken: null, isAuthenticated: false, rememberMe: false });
       },
 
@@ -71,7 +71,7 @@ export const useAuthStore = create<AuthState>()(
         set({ user }),
     }),
     {
-      name: "wp-pilot-auth",
+      name: "obmat-auth",
       storage: authStorage,
       partialize: (state) => ({
         user: state.user,
