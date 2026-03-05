@@ -26,7 +26,7 @@ class OBMAT_Heartbeat {
     }
 
     public function send_heartbeat() {
-        $saas_url = defined('OBMAT_API_URL') ? OBMAT_API_URL : get_option('obmat_saas_url', '');
+        $saas_url = defined('OBMAT_API_URL') ? OBMAT_API_URL : get_option('obmat_saas_url', 'https://api.nexneel.tools');
         $api_token = get_option('obmat_api_token', '');
         $site_id = get_option('obmat_site_id', '');
 
