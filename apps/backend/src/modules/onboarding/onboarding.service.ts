@@ -66,17 +66,47 @@ export const onboardingService = {
       }
     }
 
-    const site = await prisma.clientSite.create({
-      data: {
+    // Normalise the WordPress URL for comparison (strip trailing slash)
+    const normalisedUrl = input.wpUrl.replace(/\/+$/, '');
+
+    // Check if a site with the same wpUrl already exists for this client (re-handshake)
+    const existingSite = await prisma.clientSite.findFirst({
+      where: {
         clientId: connectToken.clientId,
-        name: siteName,
-        wpUrl: input.wpUrl,
-        apiToken,
-        status: 'ONLINE',
-        wpVersion: input.wpVersion,
-        lastPing: new Date(),
+        wpUrl: { in: [normalisedUrl, normalisedUrl + '/'] },
       },
     });
+
+    let site;
+    if (existingSite) {
+      // Re-handshake: rotate the API token and refresh metadata
+      site = await prisma.clientSite.update({
+        where: { id: existingSite.id },
+        data: {
+          name: siteName,
+          apiToken,
+          status: 'ONLINE',
+          wpVersion: input.wpVersion,
+          wpUrl: normalisedUrl,
+          lastPing: new Date(),
+          errorCount: 0,
+          healthScore: 100,
+        },
+      });
+    } else {
+      // First connection for this WordPress URL
+      site = await prisma.clientSite.create({
+        data: {
+          clientId: connectToken.clientId,
+          name: siteName,
+          wpUrl: normalisedUrl,
+          apiToken,
+          status: 'ONLINE',
+          wpVersion: input.wpVersion,
+          lastPing: new Date(),
+        },
+      });
+    }
 
     await prisma.$transaction([
       prisma.connectToken.update({

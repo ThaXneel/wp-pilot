@@ -16,12 +16,40 @@ export const sitesService = {
     const where = clientId ? { clientId } : {};
     return prisma.clientSite.findMany({
       where,
+      select: {
+        id: true,
+        clientId: true,
+        name: true,
+        wpUrl: true,
+        status: true,
+        healthScore: true,
+        errorCount: true,
+        wpVersion: true,
+        lastPing: true,
+        createdAt: true,
+        updatedAt: true,
+      },
       orderBy: { createdAt: 'desc' },
     });
   },
 
   async getSite(siteId: string, clientId?: string) {
-    const site = await prisma.clientSite.findUnique({ where: { id: siteId } });
+    const site = await prisma.clientSite.findUnique({
+      where: { id: siteId },
+      select: {
+        id: true,
+        clientId: true,
+        name: true,
+        wpUrl: true,
+        status: true,
+        healthScore: true,
+        errorCount: true,
+        wpVersion: true,
+        lastPing: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+    });
 
     if (!site) {
       throw new AppError('Site not found', 404);

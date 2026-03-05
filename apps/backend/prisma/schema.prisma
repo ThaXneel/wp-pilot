@@ -96,6 +96,7 @@ model ClientSite {
   activities   Activity[]
   globalEvents GlobalEvent[]
 
+  @@unique([clientId, wpUrl])
   @@index([clientId])
   @@map("client_sites")
 }

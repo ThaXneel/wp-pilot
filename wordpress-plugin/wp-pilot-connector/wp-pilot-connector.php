@@ -38,7 +38,6 @@ class OBMAT_Connector {
             delete_option('obmat_site_id');
         }, 5, 0);
         add_action('update_option_obmat_api_token', [$this, 'try_handshake'], 10, 0);
-        add_action('update_option_obmat_saas_url', [$this, 'try_handshake'], 10, 0);
 
         // Initialize heartbeat cron
         $heartbeat = new OBMAT_Heartbeat();
@@ -53,16 +52,16 @@ class OBMAT_Connector {
      * Attempt handshake with the SaaS backend after settings are saved.
      * Sends the connect token + WordPress site info to the SaaS to complete the connection.
      */
-    public function try_handshake($force = false) {
+    public function try_handshake() {
         // Avoid running multiple times during the same request
         static $already_ran = false;
-        if ($already_ran && !$force) return;
+        if ($already_ran) return;
         $already_ran = true;
 
         $token = get_option('obmat_api_token', '');
 
-        // Backend URL: wp-config.php constant > saved option > hardcoded default
-        $saas_url = defined('OBMAT_API_URL') ? OBMAT_API_URL : get_option('obmat_saas_url', 'https://api.nexneel.tools');
+        // Backend URL from wp-config.php constant, fallback to option (legacy)
+        $saas_url = defined('OBMAT_API_URL') ? OBMAT_API_URL : get_option('obmat_saas_url', '');
 
         if (empty($token) || empty($saas_url)) {
             return;
@@ -230,21 +229,14 @@ class OBMAT_Connector {
 
     public function register_settings() {
         register_setting('obmat_settings', 'obmat_api_token');
-        register_setting('obmat_settings', 'obmat_saas_url');
         register_setting('obmat_settings', 'obmat_site_id');
-
-        // Handle manual handshake retry
-        if (isset($_POST['obmat_retry_handshake']) && check_admin_referer('obmat_retry_handshake')) {
-            $this->try_handshake(true);
-        }
     }
 
     public function render_settings_page() {
         $token = get_option('obmat_api_token', '');
         $site_id = get_option('obmat_site_id', '');
         $is_connected = !empty($site_id);
-        $url_locked = defined('OBMAT_API_URL');
-        $saas_url = $url_locked ? OBMAT_API_URL : get_option('obmat_saas_url', 'https://api.nexneel.tools');
+        $saas_url = defined('OBMAT_API_URL') ? OBMAT_API_URL : get_option('obmat_saas_url', '');
 
         // Show settings errors/notices from handshake
         settings_errors('obmat_settings');
@@ -252,6 +244,12 @@ class OBMAT_Connector {
         <div class="wrap">
             <h1>OBMAT — Online Business Manager Tool</h1>
             <p class="description">Developed by <strong>NEXNEEL</strong></p>
+
+            <?php if (empty($saas_url)): ?>
+                <div class="notice notice-warning">
+                    <p><strong>⚠️ Backend URL not configured.</strong> Add <code>define('OBMAT_API_URL', 'https://api.obmat.com');</code> to your <code>wp-config.php</code> file.</p>
+                </div>
+            <?php endif; ?>
 
             <?php if ($is_connected): ?>
                 <div class="notice notice-success">
@@ -272,13 +270,8 @@ class OBMAT_Connector {
                     <tr>
                         <th>Backend URL</th>
                         <td>
-                            <?php if ($url_locked): ?>
-                                <code><?php echo esc_html($saas_url); ?></code>
-                                <p class="description">Locked via <code>OBMAT_API_URL</code> constant in <code>wp-config.php</code>.</p>
-                            <?php else: ?>
-                                <input type="text" name="obmat_saas_url" value="<?php echo esc_attr($saas_url); ?>" class="regular-text" />
-                                <p class="description">The OBMAT API backend URL. Default: <code>https://api.nexneel.tools</code>. Can also be locked via <code>OBMAT_API_URL</code> constant in <code>wp-config.php</code>.</p>
-                            <?php endif; ?>
+                            <code><?php echo esc_html(!empty($saas_url) ? $saas_url : '— not set —'); ?></code>
+                            <p class="description">Configured via <code>OBMAT_API_URL</code> constant in <code>wp-config.php</code>.</p>
                         </td>
                     </tr>
                     <tr>
@@ -291,16 +284,6 @@ class OBMAT_Connector {
                 </table>
                 <?php submit_button(); ?>
             </form>
-
-            <?php if (!$is_connected && !empty($token)): ?>
-                <h2>Retry Connection</h2>
-                <p>If the automatic handshake did not complete, click the button below to retry.</p>
-                <form method="post">
-                    <?php wp_nonce_field('obmat_retry_handshake'); ?>
-                    <input type="hidden" name="obmat_retry_handshake" value="1" />
-                    <?php submit_button('Retry Handshake', 'secondary'); ?>
-                </form>
-            <?php endif; ?>
 
             <?php if ($is_connected): ?>
                 <h2>Reconnect</h2>

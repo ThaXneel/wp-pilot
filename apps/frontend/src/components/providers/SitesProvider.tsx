@@ -36,7 +36,7 @@ export function SitesProvider({ children }: { children: React.ReactNode }) {
   });
 
   useEffect(() => {
-    if (data && data.length > 0) {
+    if (data) {
       setSites(data as Site[]);
     }
   }, [data, setSites]);
