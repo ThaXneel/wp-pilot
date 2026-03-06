@@ -7,10 +7,10 @@ interface FetchOptions extends RequestInit {
 }
 
 async function refreshAccessToken(): Promise<string | null> {
-  const { refreshToken, setTokens, logout } = useAuthStore.getState();
+  const { refreshToken, user, rememberMe } = useAuthStore.getState();
 
   if (!refreshToken) {
-    logout();
+    useAuthStore.getState().logout();
     return null;
   }
 
@@ -22,15 +22,22 @@ async function refreshAccessToken(): Promise<string | null> {
     });
 
     if (!res.ok) {
-      logout();
+      useAuthStore.getState().logout();
       return null;
     }
 
     const data = await res.json();
-    setTokens(data.data.accessToken, data.data.refreshToken);
+    const newRememberMe = data.data.rememberMe ?? rememberMe;
+
+    // Use login() to properly update all state including rememberMe and storage target
+    if (user) {
+      useAuthStore.getState().login(user, data.data.accessToken, data.data.refreshToken, newRememberMe);
+    } else {
+      useAuthStore.getState().setTokens(data.data.accessToken, data.data.refreshToken);
+    }
     return data.data.accessToken;
   } catch {
-    logout();
+    useAuthStore.getState().logout();
     return null;
   }
 }
