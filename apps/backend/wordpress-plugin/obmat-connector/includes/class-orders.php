@@ -41,12 +41,15 @@ class OBMAT_Orders {
             return rest_ensure_response(['count' => 0]);
         }
 
-        $counts = wp_count_posts('shop_order');
-        $total = 0;
-        foreach ($counts as $count) {
-            $total += (int) $count;
-        }
+        // Use wc_get_orders() instead of wp_count_posts('shop_order')
+        // because HPOS (default since WooCommerce 8.2+) stores orders
+        // in the wc_orders table, not as wp_posts.
+        $results = wc_get_orders([
+            'limit'    => 1,
+            'return'   => 'ids',
+            'paginate' => true,
+        ]);
 
-        return rest_ensure_response(['count' => $total]);
+        return rest_ensure_response(['count' => (int) $results->total]);
     }
 }
