@@ -36,52 +36,17 @@ export const dashboardService = {
         },
       });
 
-      // Try to get product/order/post counts from proxy (graceful fallback)
+      // Fetch per-site counts from proxy, then derive global totals
+      const siteStats = await this.getPerSiteStats(rawSites, env);
+
       let productCount = 0;
       let orderCount = 0;
       let postCount = 0;
 
-      // Use selected site, or first active site for counts
-      const targetSite = selectedSiteId
-        ? rawSites.find((s) => s.id === selectedSiteId)
-        : rawSites.find((s) => s.status === 'ONLINE') ?? rawSites[0];
-
-      if (targetSite) {
-        try {
-          const token = jwt.sign({ service: 'backend' }, env.JWT_SECRET, { expiresIn: '60s' });
-          const headers = { Authorization: `Bearer ${token}` };
-
-          const [productsRes, ordersRes, postsRes] = await Promise.all([
-            fetch(`${env.PROXY_URL}/proxy/sites/${targetSite.id}/products/count`, { headers, signal: AbortSignal.timeout(8000) }),
-            fetch(`${env.PROXY_URL}/proxy/sites/${targetSite.id}/orders/count`, { headers, signal: AbortSignal.timeout(8000) }),
-            fetch(`${env.PROXY_URL}/proxy/sites/${targetSite.id}/posts/count`, { headers, signal: AbortSignal.timeout(8000) }),
-          ]);
-
-          if (productsRes.ok) {
-            productCount = ((await productsRes.json()) as { count?: number }).count ?? 0;
-          } else {
-            const body = await productsRes.text().catch(() => '');
-            logger.warn(`Products count failed for site ${targetSite.id}: HTTP ${productsRes.status} — ${body.slice(0, 200)}`);
-          }
-          if (ordersRes.ok) {
-            orderCount = ((await ordersRes.json()) as { count?: number }).count ?? 0;
-          } else {
-            const body = await ordersRes.text().catch(() => '');
-            logger.warn(`Orders count failed for site ${targetSite.id}: HTTP ${ordersRes.status} — ${body.slice(0, 200)}`);
-          }
-          if (postsRes.ok) {
-            postCount = ((await postsRes.json()) as { count?: number }).count ?? 0;
-          } else {
-            const body = await postsRes.text().catch(() => '');
-            logger.warn(`Posts count failed for site ${targetSite.id}: HTTP ${postsRes.status} — ${body.slice(0, 200)}`);
-          }
-        } catch (err) {
-          logger.warn('Could not fetch counts from proxy — using defaults', {
-            error: (err as Error).message,
-            proxyUrl: env.PROXY_URL,
-            siteId: targetSite.id,
-          });
-        }
+      for (const counts of Object.values(siteStats)) {
+        productCount += counts.products;
+        orderCount += counts.orders;
+        postCount += counts.posts;
       }
 
       return {
@@ -90,7 +55,7 @@ export const dashboardService = {
         orderCount,
         postCount,
         recentActivity,
-        siteStats: await this.getPerSiteStats(rawSites, env),
+        siteStats,
       };
     } catch (err) {
       logger.error('Dashboard stats error', { error: (err as Error).message });

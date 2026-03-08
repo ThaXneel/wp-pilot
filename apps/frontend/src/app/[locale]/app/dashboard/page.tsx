@@ -46,7 +46,7 @@ interface DashboardStats {
 
 export default function DashboardPage() {
   const t = useTranslations("dashboard");
-  const { setSites, selectedSiteId } = useSiteStore();
+  const { setSites, selectedSiteId, selectSite } = useSiteStore();
   const { accessToken } = useAuthStore();
   const queryClient = useQueryClient();
 
@@ -54,11 +54,9 @@ export default function DashboardPage() {
   const [isRemoving, setIsRemoving] = useState(false);
 
   const { data, isLoading } = useQuery({
-    queryKey: ["dashboard-stats", selectedSiteId],
+    queryKey: ["dashboard-stats"],
     queryFn: async () => {
-      const params = new URLSearchParams();
-      if (selectedSiteId) params.set("siteId", selectedSiteId);
-      const res = await api<DashboardStats>(`/dashboard/stats?${params}`);
+      const res = await api<DashboardStats>(`/dashboard/stats`);
       if (!res.success) throw new Error(res.error);
       return res.data;
     },
@@ -158,7 +156,7 @@ export default function DashboardPage() {
     <div className="space-y-6">
       <h1 className="text-2xl font-bold text-(--color-foreground)">{t("title")}</h1>
 
-      {/* Stats Cards */}
+      {/* Global Stats Cards — aggregated across all connected stores */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         {stats.map((stat) => (
           <Link key={stat.href} href={stat.href}>
@@ -170,6 +168,11 @@ export default function DashboardPage() {
                 <div>
                   <p className="text-sm text-(--color-muted-foreground)">{stat.label}</p>
                   <p className="text-2xl font-bold text-(--color-foreground)">{stat.value}</p>
+                  {(data?.sites?.length ?? 0) > 1 && (
+                    <p className="text-xs text-(--color-muted-foreground) mt-0.5">
+                      {t("acrossAllSites", { count: data?.sites?.length ?? 0 })}
+                    </p>
+                  )}
                 </div>
               </CardContent>
             </Card>
@@ -177,42 +180,45 @@ export default function DashboardPage() {
         ))}
       </div>
 
-      {/* Connected Sites */}
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <CardTitle className="flex items-center gap-2">
-              <Globe className="h-5 w-5" />
-              {t("connectedSites")}
-            </CardTitle>
-            <Link href="/app/onboarding">
-              <Button size="sm">
-                <Plus className="mr-2 h-4 w-4" /> {t("addSite")}
-              </Button>
-            </Link>
-          </div>
-        </CardHeader>
-        <CardContent>
-          {data?.sites && data.sites.length > 0 ? (
-            <div className="space-y-4">
-              {data.sites.map((site) => {
-                const sitePreview = data.siteStats?.[site.id];
+      {/* Connected Sites — card grid */}
+      <div>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg font-semibold text-(--color-foreground) flex items-center gap-2">
+            <Globe className="h-5 w-5" />
+            {t("connectedSites")}
+          </h2>
+          <Link href="/app/onboarding">
+            <Button size="sm">
+              <Plus className="mr-2 h-4 w-4" /> {t("addSite")}
+            </Button>
+          </Link>
+        </div>
 
-                return (
-                  <div
-                    key={site.id}
-                    className="rounded-lg border border-(--color-border) p-4 space-y-3"
-                  >
+        {data?.sites && data.sites.length > 0 ? (
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {data.sites.map((site) => {
+              const sitePreview = data.siteStats?.[site.id];
+
+              return (
+                <Card
+                  key={site.id}
+                  className="group relative hover:border-(--color-primary) hover:shadow-lg transition-all duration-200 cursor-pointer hover:-translate-y-0.5"
+                  onClick={() => {
+                    selectSite(site.id);
+                  }}
+                >
+                  <CardContent className="p-5 space-y-4">
                     {/* Site Header */}
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="font-medium text-(--color-foreground)">{site.name}</p>
-                        <p className="text-sm text-(--color-muted-foreground)">{site.wpUrl}</p>
+                    <div className="flex items-start justify-between">
+                      <div className="min-w-0 flex-1 pr-2">
+                        <p className="font-semibold text-(--color-foreground) truncate group-hover:text-(--color-primary) transition-colors">
+                          {site.name}
+                        </p>
+                        <p className="text-xs text-(--color-muted-foreground) truncate mt-0.5">
+                          {site.wpUrl}
+                        </p>
                       </div>
-                      <div className="flex items-center gap-3">
-                        <span className="text-sm text-(--color-muted-foreground)">
-                          {site.healthScore}%
-                        </span>
+                      <div className="flex items-center gap-2 shrink-0">
                         <Badge
                           variant={
                             site.status === "ONLINE"
@@ -225,8 +231,11 @@ export default function DashboardPage() {
                           {site.status}
                         </Badge>
                         <button
-                          onClick={() => setRemoveSite(site)}
-                          className="text-(--color-muted-foreground) hover:text-red-500 transition-colors p-1 rounded cursor-pointer"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setRemoveSite(site);
+                          }}
+                          className="text-(--color-muted-foreground) hover:text-red-500 transition-colors p-1 rounded opacity-0 group-hover:opacity-100 cursor-pointer"
                           title={t("removeSite")}
                         >
                           <Trash2 className="h-4 w-4" />
@@ -234,45 +243,73 @@ export default function DashboardPage() {
                       </div>
                     </div>
 
-                    {/* Site Preview Stats */}
-                    <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 text-xs">
-                      <div className="flex items-center gap-1.5 text-(--color-muted-foreground)">
-                        <Package className="h-3.5 w-3.5 text-blue-500" />
-                        <span>
-                          {sitePreview?.products ?? "—"} {t("products")}
-                        </span>
+                    {/* Health Bar */}
+                    <div>
+                      <div className="flex items-center justify-between text-xs mb-1">
+                        <span className="text-(--color-muted-foreground)">{t("health")}</span>
+                        <span className="font-medium text-(--color-foreground)">{site.healthScore}%</span>
                       </div>
-                      <div className="flex items-center gap-1.5 text-(--color-muted-foreground)">
-                        <ClipboardList className="h-3.5 w-3.5 text-green-500" />
-                        <span>
-                          {sitePreview?.orders ?? "—"} {t("orders")}
-                        </span>
+                      <div className="w-full h-1.5 bg-(--color-muted) rounded-full overflow-hidden">
+                        <div
+                          className={`h-full rounded-full transition-all ${
+                            site.healthScore >= 80
+                              ? "bg-green-500"
+                              : site.healthScore >= 50
+                              ? "bg-yellow-500"
+                              : "bg-red-500"
+                          }`}
+                          style={{ width: `${site.healthScore}%` }}
+                        />
                       </div>
-                      <div className="flex items-center gap-1.5 text-(--color-muted-foreground)">
-                        <FileText className="h-3.5 w-3.5 text-purple-500" />
-                        <span>
-                          {sitePreview?.posts ?? "—"} {t("posts")}
-                        </span>
+                    </div>
+
+                    {/* Per-site Stats */}
+                    <div className="grid grid-cols-3 gap-2 text-center">
+                      <div className="rounded-md bg-muted/50 p-2">
+                        <Package className="h-3.5 w-3.5 text-blue-500 mx-auto mb-1" />
+                        <p className="text-sm font-semibold text-(--color-foreground)">
+                          {sitePreview?.products ?? "—"}
+                        </p>
+                        <p className="text-[10px] text-(--color-muted-foreground)">{t("products")}</p>
                       </div>
-                      <div className="flex items-center gap-1.5 text-(--color-muted-foreground)">
-                        <Clock className="h-3.5 w-3.5 text-orange-500" />
+                      <div className="rounded-md bg-muted/50 p-2">
+                        <ClipboardList className="h-3.5 w-3.5 text-green-500 mx-auto mb-1" />
+                        <p className="text-sm font-semibold text-(--color-foreground)">
+                          {sitePreview?.orders ?? "—"}
+                        </p>
+                        <p className="text-[10px] text-(--color-muted-foreground)">{t("orders")}</p>
+                      </div>
+                      <div className="rounded-md bg-muted/50 p-2">
+                        <FileText className="h-3.5 w-3.5 text-purple-500 mx-auto mb-1" />
+                        <p className="text-sm font-semibold text-(--color-foreground)">
+                          {sitePreview?.posts ?? "—"}
+                        </p>
+                        <p className="text-[10px] text-(--color-muted-foreground)">{t("posts")}</p>
+                      </div>
+                    </div>
+
+                    {/* Footer: Last sync & errors */}
+                    <div className="flex items-center justify-between text-xs text-(--color-muted-foreground) pt-1 border-t border-(--color-border)">
+                      <div className="flex items-center gap-1">
+                        <Clock className="h-3 w-3" />
                         <span>{formatLastSync(site.lastPing)}</span>
                       </div>
                       {site.errorCount > 0 && (
-                        <div className="flex items-center gap-1.5 text-red-500">
-                          <AlertCircle className="h-3.5 w-3.5" />
-                          <span>
-                            {site.errorCount} {t("errors")}
-                          </span>
+                        <div className="flex items-center gap-1 text-red-500">
+                          <AlertCircle className="h-3 w-3" />
+                          <span>{site.errorCount} {t("errors")}</span>
                         </div>
                       )}
                     </div>
-                  </div>
-                );
-              })}
-            </div>
-          ) : (
-            <div className="text-center py-8">
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+        ) : (
+          <Card>
+            <CardContent className="text-center py-12">
+              <Globe className="h-10 w-10 text-(--color-muted-foreground) mx-auto mb-3" />
               <p className="text-(--color-muted-foreground)">{t("noSites")}</p>
               <Link
                 href="/app/onboarding"
@@ -280,10 +317,10 @@ export default function DashboardPage() {
               >
                 {t("connectFirst")}
               </Link>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+            </CardContent>
+          </Card>
+        )}
+      </div>
 
       {/* Remove Site Confirmation Modal */}
       <Modal

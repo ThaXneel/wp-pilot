@@ -16,21 +16,52 @@ class OBMAT_Orders {
             'paginate' => true,
         ];
 
-        $results = wc_get_orders($args);
+        try {
+            $results = wc_get_orders($args);
+        } catch (\Throwable $e) {
+            return new WP_Error('orders_query_failed', 'Failed to query orders: ' . $e->getMessage(), ['status' => 500]);
+        }
+
         $data = [];
 
         foreach ($results->orders as $order) {
-            $data[] = [
-                'id' => $order->get_id(),
-                'number' => $order->get_order_number(),
-                'status' => $order->get_status(),
-                'total' => $order->get_total(),
-                'currency' => $order->get_currency(),
-                'customer_name' => $order->get_billing_first_name() . ' ' . $order->get_billing_last_name(),
-                'customer_email' => $order->get_billing_email(),
-                'items_count' => $order->get_item_count(),
-                'created_at' => $order->get_date_created()?->format('c'),
-            ];
+            try {
+                $date_created = null;
+                try {
+                    $date_obj = $order->get_date_created();
+                    $date_created = $date_obj ? $date_obj->format('c') : null;
+                } catch (\Throwable $e) {
+                    $date_created = null;
+                }
+
+                $data[] = [
+                    'id' => $order->get_id(),
+                    'number' => (string) ($order->get_order_number() ?? $order->get_id()),
+                    'status' => $order->get_status() ?? 'unknown',
+                    'total' => $order->get_total() ?? '0',
+                    'currency' => $order->get_currency() ?? 'USD',
+                    'customer_name' => trim(
+                        ($order->get_billing_first_name() ?? '') . ' ' . ($order->get_billing_last_name() ?? '')
+                    ),
+                    'customer_email' => $order->get_billing_email() ?? '',
+                    'items_count' => $order->get_item_count() ?? 0,
+                    'created_at' => $date_created,
+                ];
+            } catch (\Throwable $e) {
+                // Skip orders that cause fatal errors but log it
+                $data[] = [
+                    'id' => method_exists($order, 'get_id') ? $order->get_id() : 0,
+                    'number' => 'error',
+                    'status' => 'error',
+                    'total' => '0',
+                    'currency' => 'USD',
+                    'customer_name' => 'Error loading order',
+                    'customer_email' => '',
+                    'items_count' => 0,
+                    'created_at' => null,
+                    '_error' => $e->getMessage(),
+                ];
+            }
         }
 
         return rest_ensure_response(['orders' => $data, 'total' => $results->total]);

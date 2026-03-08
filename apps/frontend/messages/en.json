@@ -90,7 +90,9 @@
     "justNow": "Just now",
     "ago": "ago",
     "errors": "errors",
-    "lastSync": "Last sync"
+    "lastSync": "Last sync",
+    "health": "Health",
+    "acrossAllSites": "across {count} sites"
   },
   "onboarding": {
     "title": "Connect your WordPress site",

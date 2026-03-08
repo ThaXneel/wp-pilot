@@ -16,7 +16,37 @@ export const ordersService = {
       const response = await fetch(`${env.PROXY_URL}/proxy/sites/${site.id}/orders`, {
         headers: { 'Authorization': `Bearer ${token}` },
       });
+
+      // Handle non-JSON responses (e.g. when WP returns HTML error pages)
+      const contentType = response.headers.get('content-type') || '';
+      if (!contentType.includes('application/json')) {
+        logger.error('Non-JSON response from proxy for orders', {
+          siteId: site.id,
+          wpUrl: site.wpUrl,
+          status: response.status,
+        });
+        throw new AppError(
+          'WordPress site returned an error while fetching orders. Please check that WooCommerce is active and the OBMAT plugin is up to date.',
+          502,
+        );
+      }
+
       const data = await response.json();
+
+      // If proxy returned an error object, forward it
+      if (!response.ok) {
+        logger.error('Proxy returned error for orders', {
+          siteId: site.id,
+          wpUrl: site.wpUrl,
+          status: response.status,
+          data,
+        });
+        throw new AppError(
+          (data as { error?: string }).error || 'Failed to fetch orders from WordPress site',
+          response.status >= 500 ? 502 : response.status,
+        );
+      }
+
       return data;
     } catch (err) {
       if (err instanceof AppError) throw err;
